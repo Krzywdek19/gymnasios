@@ -3,16 +3,18 @@ package com.krzywdek19.workout_service.api;
 import com.krzywdek19.workout_service.model.dto.TrainingPlanDto;
 import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -31,8 +33,8 @@ public class TrainingPlanController {
     @PostMapping
     public ResponseEntity<TrainingPlanDto> createTrainingPlan(
             @RequestBody CreateTrainingPlanRequest request,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        TrainingPlanDto createdPlan = trainingPlanService.createPlan(userId, request);
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        TrainingPlanDto createdPlan = trainingPlanService.createPlan(userEmail, request);
         return new ResponseEntity<>(createdPlan, HttpStatus.CREATED);
     }
 
@@ -42,8 +44,8 @@ public class TrainingPlanController {
     })
     @GetMapping
     public ResponseEntity<List<TrainingPlanDto>> getUserPlans(
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        List<TrainingPlanDto> plans = trainingPlanService.getPlansByUserId(userId);
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        List<TrainingPlanDto> plans = trainingPlanService.getPlansByUserEmail(userEmail);
         return ResponseEntity.ok(plans);
     }
 
@@ -54,9 +56,9 @@ public class TrainingPlanController {
     })
     @GetMapping("/{planId}")
     public ResponseEntity<TrainingPlanDto> getTrainingPlanById(
-            @Parameter(description = "ID of the training plan to retrieve") @PathVariable Long planId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        TrainingPlanDto plan = trainingPlanService.getPlanById(planId, userId);
+            @Parameter(description = "ID of the training plan to retrieve") @PathVariable UUID planId,
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        TrainingPlanDto plan = trainingPlanService.getPlanById(planId, userEmail);
         return ResponseEntity.ok(plan);
     }
 
@@ -67,9 +69,9 @@ public class TrainingPlanController {
     })
     @DeleteMapping("/{planId}")
     public ResponseEntity<Void> deleteTrainingPlan(
-            @Parameter(description = "ID of the training plan to delete") @PathVariable Long planId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        trainingPlanService.deletePlan(planId, userId);
+            @Parameter(description = "ID of the training plan to delete") @PathVariable UUID planId,
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        trainingPlanService.deletePlan(planId, userEmail);
         return ResponseEntity.noContent().build();
     }
 }

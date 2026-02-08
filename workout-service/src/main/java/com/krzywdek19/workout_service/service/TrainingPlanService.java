@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface TrainingPlanService {
     TrainingPlanDto createPlan(String userEmail, CreateTrainingPlanRequest request);
-    List<TrainingPlanDto> getPlansByUserId(String userId);
-    TrainingPlanDto getPlanById(Long planId, String userId);
-    void deletePlan(Long planId, String userId);
+    List<TrainingPlanDto> getPlansByUserEmail(String userEmail);
+    TrainingPlanDto getPlanById(UUID planId, String userEmail);
+    void deletePlan(UUID planId, String userEmail);
 }

@@ -37,14 +37,4 @@ public class TrainingPlan {
             orphanRemoval = true
     )
     private List<WorkoutTemplate> workouts = new ArrayList<>();
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = Instant.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
-    }
 }
