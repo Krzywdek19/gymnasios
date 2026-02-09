@@ -2,6 +2,8 @@ package com.krzywdek19.workout_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,8 +29,10 @@ public class WorkoutTemplate {
     @Column(nullable = false)
     private int orderIndex;
     @Column(nullable = false, updatable = false)
+    @CreatedDate
     private Instant createdAt;
     @Column(nullable = false)
+    @LastModifiedDate
     private Instant updatedAt;
     @OneToMany(
             mappedBy = "workoutTemplate",
@@ -36,13 +40,4 @@ public class WorkoutTemplate {
             orphanRemoval = true
     )
     private List<ExerciseTemplate> exercises = new ArrayList<>();
-    @PrePersist
-    void onCreate() {
-        createdAt = Instant.now();
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = Instant.now();
-    }
 }

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -30,10 +31,10 @@ public class WorkoutTemplateController {
     })
     @PostMapping("/training-plans/{planId}/workout-templates")
     public ResponseEntity<WorkoutTemplateDto> addWorkoutTemplateToPlan(
-            @Parameter(description = "ID of the training plan") @PathVariable Long planId,
+            @Parameter(description = "ID of the training plan") @PathVariable UUID planId,
             @RequestBody CreateWorkoutTemplateRequest request,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        WorkoutTemplateDto createdTemplate = workoutTemplateService.addWorkoutTemplateToPlan(planId, userId, request);
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        WorkoutTemplateDto createdTemplate = workoutTemplateService.addWorkoutTemplateToPlan(planId, userEmail, request);
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
@@ -44,9 +45,9 @@ public class WorkoutTemplateController {
     })
     @GetMapping("/training-plans/{planId}/workout-templates")
     public ResponseEntity<List<WorkoutTemplateDto>> getWorkoutTemplatesForPlan(
-            @Parameter(description = "ID of the training plan") @PathVariable Long planId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        List<WorkoutTemplateDto> templates = workoutTemplateService.getWorkoutTemplatesForPlan(planId, userId);
+            @Parameter(description = "ID of the training plan") @PathVariable UUID planId,
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        List<WorkoutTemplateDto> templates = workoutTemplateService.getWorkoutTemplatesForPlan(planId, userEmail);
         return ResponseEntity.ok(templates);
     }
 
@@ -57,9 +58,9 @@ public class WorkoutTemplateController {
     })
     @GetMapping("/workout-templates/{templateId}")
     public ResponseEntity<WorkoutTemplateDto> getWorkoutTemplateById(
-            @Parameter(description = "ID of the workout template to retrieve") @PathVariable Long templateId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        WorkoutTemplateDto template = workoutTemplateService.getWorkoutTemplateById(templateId, userId);
+            @Parameter(description = "ID of the workout template to retrieve") @PathVariable UUID templateId,
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        WorkoutTemplateDto template = workoutTemplateService.getWorkoutTemplateById(templateId, userEmail);
         return ResponseEntity.ok(template);
     }
 
@@ -70,9 +71,9 @@ public class WorkoutTemplateController {
     })
     @DeleteMapping("/workout-templates/{templateId}")
     public ResponseEntity<Void> deleteWorkoutTemplate(
-            @Parameter(description = "ID of the workout template to delete") @PathVariable Long templateId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        workoutTemplateService.deleteWorkoutTemplate(templateId, userId);
+            @Parameter(description = "ID of the workout template to delete") @PathVariable UUID templateId,
+            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
+        workoutTemplateService.deleteWorkoutTemplate(templateId, userEmail);
         return ResponseEntity.noContent().build();
     }
 }
