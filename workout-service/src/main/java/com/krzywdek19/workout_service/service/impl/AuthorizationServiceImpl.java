@@ -2,8 +2,10 @@ package com.krzywdek19.workout_service.service.impl;
 
 import com.krzywdek19.workout_service.exceptions.ResourceNotFoundException;
 import com.krzywdek19.workout_service.exceptions.ResourceOwnershipException;
+import com.krzywdek19.workout_service.model.ExerciseTemplate;
 import com.krzywdek19.workout_service.model.TrainingPlan;
 import com.krzywdek19.workout_service.model.WorkoutTemplate;
+import com.krzywdek19.workout_service.repository.ExerciseTemplateRepository;
 import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
 import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
@@ -19,6 +21,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     private final TrainingPlanRepository trainingPlanRepository;
     private final WorkoutTemplateRepository workoutTemplateRepository;
+    private final ExerciseTemplateRepository exerciseTemplateRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,6 +43,17 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         if (!template.getTrainingPlan().getUserEmail().equals(userEmail)) {
             throw new ResourceOwnershipException("WorkoutTemplate", templateId);
+        }
+        return template;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ExerciseTemplate verifyAndGetExerciseTemplate(UUID exerciseTemplateId, String userEmail) {
+        ExerciseTemplate template = exerciseTemplateRepository.findByIdWithWorkoutTemplateAndTrainingPlan(exerciseTemplateId)
+                .orElseThrow(() -> new ResourceNotFoundException("ExerciseTemplate", exerciseTemplateId));
+        if (!template.getWorkoutTemplate().getTrainingPlan().getUserEmail().equals(userEmail)) {
+            throw new ResourceOwnershipException("ExerciseTemplate", exerciseTemplateId);
         }
         return template;
     }

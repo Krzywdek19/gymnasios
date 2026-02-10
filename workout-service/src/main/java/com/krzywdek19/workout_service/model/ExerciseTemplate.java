@@ -2,6 +2,8 @@ package com.krzywdek19.workout_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -28,19 +30,11 @@ public class ExerciseTemplate {
     private int orderIndex;
     private String notes;
     @Column(nullable = false, updatable = false)
+    @CreatedDate
     private Instant createdAt;
     @Column(nullable = false)
+    @LastModifiedDate
     private Instant updatedAt;
 
-    @PrePersist
-    void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = Instant.now();
-    }
 
 }

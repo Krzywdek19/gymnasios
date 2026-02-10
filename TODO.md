@@ -1,19 +1,6 @@
 # Kolejność implementacji serwisów (notatka dla mnie)
 
-## 1) Szablony (fundament)
-# Kolejność implementacji (dla mnie)
-
-## Najpierw szablony
-1) TrainingPlanServiceImpl  
-- start całej struktury: tworzenie i ogarnianie "planów"
-
-2) WorkoutTemplateServiceImpl  
-- do planu dodaję "szablony treningów"  
-- korzysta z TrainingPlanRepository, żeby to sensownie powiązać
-
-3) ExerciseTemplateServiceImpl  
-- do szablonu treningu dodaję "szablony ćwiczeń"  
-- korzysta z WorkoutTemplateRepository
+## Wydzielenie autoryzacji do aspektów
 
 ## Potem sesje (na bazie szablonów)
 4) WorkoutSessionServiceImpl  
@@ -25,6 +12,8 @@
 
 6) SetSessionServiceImpl  
 - na koniec: update i usuwanie SetSession (czyli realne "wpisywanie progresu" w trakcie treningu)
+
+
 
 
 

@@ -2,8 +2,10 @@ package com.krzywdek19.workout_service.service.impl;
 
 import com.krzywdek19.workout_service.exceptions.ResourceNotFoundException;
 import com.krzywdek19.workout_service.exceptions.ResourceOwnershipException;
+import com.krzywdek19.workout_service.model.ExerciseTemplate;
 import com.krzywdek19.workout_service.model.TrainingPlan;
 import com.krzywdek19.workout_service.model.WorkoutTemplate;
+import com.krzywdek19.workout_service.repository.ExerciseTemplateRepository;
 import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
 import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,13 +31,17 @@ public class AuthorizationServiceImplTest {
     @Mock
     private WorkoutTemplateRepository workoutTemplateRepository;
 
+    @Mock
+    private ExerciseTemplateRepository exerciseTemplateRepository;
+
     private AuthorizationServiceImpl authorizationService;
 
     @BeforeEach
     void setUp() {
         authorizationService = new AuthorizationServiceImpl(
                 trainingPlanRepository,
-                workoutTemplateRepository
+                workoutTemplateRepository,
+                exerciseTemplateRepository
         );
     }
 
@@ -138,4 +144,58 @@ public class AuthorizationServiceImplTest {
         });
     }
     //endregion
+
+    //region verifyAndGetExerciseTemplate Tests
+    @Test
+    void verifyAndGetExerciseTemplate_shouldReturnTemplate_whenTemplateExistsAndUserIsOwner() {
+        // Arrange
+        UUID exerciseTemplateId = UUID.randomUUID();
+        String userEmail = "owner@example.com";
+        TrainingPlan plan = TrainingPlan.builder().userEmail(userEmail).build();
+        WorkoutTemplate workoutTemplate = WorkoutTemplate.builder().trainingPlan(plan).build();
+        ExerciseTemplate exerciseTemplate = ExerciseTemplate.builder().id(exerciseTemplateId).workoutTemplate(workoutTemplate).build();
+
+        when(exerciseTemplateRepository.findByIdWithWorkoutTemplateAndTrainingPlan(exerciseTemplateId)).thenReturn(Optional.of(exerciseTemplate));
+
+        // Act
+        ExerciseTemplate result = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(exerciseTemplateId, result.getId());
+    }
+
+    @Test
+    void verifyAndGetExerciseTemplate_shouldThrowResourceNotFoundException_whenTemplateDoesNotExist() {
+        // Arrange
+        UUID exerciseTemplateId = UUID.randomUUID();
+        String userEmail = "user@example.com";
+
+        when(exerciseTemplateRepository.findByIdWithWorkoutTemplateAndTrainingPlan(exerciseTemplateId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
+        });
+    }
+
+    @Test
+    void verifyAndGetExerciseTemplate_shouldThrowResourceOwnershipException_whenUserIsNotOwner() {
+        // Arrange
+        UUID exerciseTemplateId = UUID.randomUUID();
+        String ownerEmail = "owner@example.com";
+        String requesterEmail = "requester@example.com";
+        TrainingPlan plan = TrainingPlan.builder().userEmail(ownerEmail).build();
+        WorkoutTemplate workoutTemplate = WorkoutTemplate.builder().trainingPlan(plan).build();
+        ExerciseTemplate exerciseTemplate = ExerciseTemplate.builder().id(exerciseTemplateId).workoutTemplate(workoutTemplate).build();
+
+        when(exerciseTemplateRepository.findByIdWithWorkoutTemplateAndTrainingPlan(exerciseTemplateId)).thenReturn(Optional.of(exerciseTemplate));
+
+        // Act & Assert
+        assertThrows(ResourceOwnershipException.class, () -> {
+            authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, requesterEmail);
+        });
+    }
+    //endregion
 }
+

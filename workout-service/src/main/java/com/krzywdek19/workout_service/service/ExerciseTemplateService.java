@@ -5,10 +5,11 @@ import com.krzywdek19.workout_service.model.request.CreateExerciseTemplateReques
 import com.krzywdek19.workout_service.model.request.UpdateExerciseTemplateRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface ExerciseTemplateService {
-    ExerciseTemplateDto addExerciseTemplate(Long workoutTemplateId, String userId, CreateExerciseTemplateRequest request);
-    List<ExerciseTemplateDto> getExerciseTemplatesForWorkout(Long workoutTemplateId, String userId);
-    ExerciseTemplateDto updateExerciseTemplate(Long exerciseTemplateId, String userId, UpdateExerciseTemplateRequest request);
-    void deleteExerciseTemplate(Long exerciseTemplateId, String userId);
+    ExerciseTemplateDto addExerciseTemplate(UUID workoutTemplateId, CreateExerciseTemplateRequest request);
+    List<ExerciseTemplateDto> getExerciseTemplatesForWorkout(UUID workoutTemplateId);
+    ExerciseTemplateDto updateExerciseTemplate(UUID exerciseTemplateId, UpdateExerciseTemplateRequest request);
+    void deleteExerciseTemplate(UUID exerciseTemplateId);
 }

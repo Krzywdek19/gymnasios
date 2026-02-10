@@ -5,8 +5,8 @@ import java.util.UUID;
 public record ExerciseTemplateDto(
         UUID id,
         String name,
+        String notes,
         int setsCount,
-        int orderIndex,
-        String notes
+        int orderIndex
 ) {
 }

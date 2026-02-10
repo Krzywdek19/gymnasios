@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,11 +31,11 @@ public class WorkoutTemplateController {
             @ApiResponse(responseCode = "404", description = "Training plan not found or user does not have access")
     })
     @PostMapping("/training-plans/{planId}/workout-templates")
+    @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<WorkoutTemplateDto> addWorkoutTemplateToPlan(
             @Parameter(description = "ID of the training plan") @PathVariable UUID planId,
-            @RequestBody CreateWorkoutTemplateRequest request,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        WorkoutTemplateDto createdTemplate = workoutTemplateService.addWorkoutTemplateToPlan(planId, userEmail, request);
+            @RequestBody CreateWorkoutTemplateRequest request) {
+        WorkoutTemplateDto createdTemplate = workoutTemplateService.addWorkoutTemplateToPlan(planId, request);
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
@@ -44,10 +45,10 @@ public class WorkoutTemplateController {
             @ApiResponse(responseCode = "404", description = "Training plan not found or user does not have access")
     })
     @GetMapping("/training-plans/{planId}/workout-templates")
+    @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<List<WorkoutTemplateDto>> getWorkoutTemplatesForPlan(
-            @Parameter(description = "ID of the training plan") @PathVariable UUID planId,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        List<WorkoutTemplateDto> templates = workoutTemplateService.getWorkoutTemplatesForPlan(planId, userEmail);
+            @Parameter(description = "ID of the training plan") @PathVariable UUID planId) {
+        List<WorkoutTemplateDto> templates = workoutTemplateService.getWorkoutTemplatesForPlan(planId);
         return ResponseEntity.ok(templates);
     }
 
@@ -57,10 +58,10 @@ public class WorkoutTemplateController {
             @ApiResponse(responseCode = "404", description = "Workout template not found or user does not have access")
     })
     @GetMapping("/workout-templates/{templateId}")
+    @PreAuthorize("@access.workout(#templateId, authentication)")
     public ResponseEntity<WorkoutTemplateDto> getWorkoutTemplateById(
-            @Parameter(description = "ID of the workout template to retrieve") @PathVariable UUID templateId,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        WorkoutTemplateDto template = workoutTemplateService.getWorkoutTemplateById(templateId, userEmail);
+            @Parameter(description = "ID of the workout template to retrieve") @PathVariable UUID templateId) {
+        WorkoutTemplateDto template = workoutTemplateService.getWorkoutTemplateById(templateId);
         return ResponseEntity.ok(template);
     }
 
@@ -70,10 +71,10 @@ public class WorkoutTemplateController {
             @ApiResponse(responseCode = "404", description = "Workout template not found or user does not have access")
     })
     @DeleteMapping("/workout-templates/{templateId}")
+    @PreAuthorize("@access.workout(#templateId, authentication)")
     public ResponseEntity<Void> deleteWorkoutTemplate(
-            @Parameter(description = "ID of the workout template to delete") @PathVariable UUID templateId,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        workoutTemplateService.deleteWorkoutTemplate(templateId, userEmail);
+            @Parameter(description = "ID of the workout template to delete") @PathVariable UUID templateId) {
+        workoutTemplateService.deleteWorkoutTemplate(templateId);
         return ResponseEntity.noContent().build();
     }
 }

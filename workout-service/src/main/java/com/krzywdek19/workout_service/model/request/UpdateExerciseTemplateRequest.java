@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateExerciseTemplateRequest(
         @NotBlank String name,
+        @NotBlank String notes,
         @NotNull @Min(0) Integer orderIndex,
-        @NotNull @Min(1) Integer plannedSets,
-        @NotNull @Min(1) Integer plannedReps
+        @NotNull @Min(1) Integer setsCount
 ) {}

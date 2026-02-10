@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,27 +26,25 @@ public class TrainingPlanController {
 
     private final TrainingPlanService trainingPlanService;
 
-    @Operation(summary = "Create a new training plan", description = "Creates a new training plan for the specified user.")
+    @Operation(summary = "Create a new training plan", description = "Creates a new training plan for the current user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Training plan created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
     @PostMapping
     public ResponseEntity<TrainingPlanDto> createTrainingPlan(
-            @RequestBody CreateTrainingPlanRequest request,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        TrainingPlanDto createdPlan = trainingPlanService.createPlan(userEmail, request);
+            @RequestBody CreateTrainingPlanRequest request) {
+        TrainingPlanDto createdPlan = trainingPlanService.createPlan(request);
         return new ResponseEntity<>(createdPlan, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Get all user's training plans", description = "Retrieves a list of all training plans belonging to the specified user.")
+    @Operation(summary = "Get all user's training plans", description = "Retrieves a list of all training plans belonging to the current user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of training plans")
     })
     @GetMapping
-    public ResponseEntity<List<TrainingPlanDto>> getUserPlans(
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        List<TrainingPlanDto> plans = trainingPlanService.getPlansByUserEmail(userEmail);
+    public ResponseEntity<List<TrainingPlanDto>> getUserPlans() {
+        List<TrainingPlanDto> plans = trainingPlanService.getPlansForCurrentUser();
         return ResponseEntity.ok(plans);
     }
 
@@ -55,10 +54,10 @@ public class TrainingPlanController {
             @ApiResponse(responseCode = "404", description = "Training plan not found or user does not have access")
     })
     @GetMapping("/{planId}")
+    @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<TrainingPlanDto> getTrainingPlanById(
-            @Parameter(description = "ID of the training plan to retrieve") @PathVariable UUID planId,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        TrainingPlanDto plan = trainingPlanService.getPlanById(planId, userEmail);
+            @Parameter(description = "ID of the training plan to retrieve") @PathVariable UUID planId) {
+        TrainingPlanDto plan = trainingPlanService.getPlanById(planId);
         return ResponseEntity.ok(plan);
     }
 
@@ -68,11 +67,10 @@ public class TrainingPlanController {
             @ApiResponse(responseCode = "404", description = "Training plan not found or user does not have access")
     })
     @DeleteMapping("/{planId}")
+    @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<Void> deleteTrainingPlan(
-            @Parameter(description = "ID of the training plan to delete") @PathVariable UUID planId,
-            @Parameter(description = "Email of the user performing the action", required = true) @RequestHeader("x-user-email") String userEmail) {
-        trainingPlanService.deletePlan(planId, userEmail);
+            @Parameter(description = "ID of the training plan to delete") @PathVariable UUID planId) {
+        trainingPlanService.deletePlan(planId);
         return ResponseEntity.noContent().build();
     }
 }
-

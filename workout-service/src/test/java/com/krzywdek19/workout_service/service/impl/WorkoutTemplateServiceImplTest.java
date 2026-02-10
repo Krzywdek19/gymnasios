@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +44,11 @@ public class WorkoutTemplateServiceImplTest {
     @Mock
     private AuthorizationService authorizationService;
 
+    @Mock
+    private SecurityContext securityContext;
 
+    @Mock
+    private Authentication authentication;
 
     private WorkoutTemplateServiceImpl workoutTemplateService;
 
@@ -52,6 +59,8 @@ public class WorkoutTemplateServiceImplTest {
                 workoutTemplateMapper,
                 authorizationService
         );
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
@@ -64,12 +73,13 @@ public class WorkoutTemplateServiceImplTest {
         WorkoutTemplate template = WorkoutTemplate.builder().name(request.name()).orderIndex(request.orderIndex()).trainingPlan(plan).build();
         WorkoutTemplateDto dto = new WorkoutTemplateDto(UUID.randomUUID(), "Morning Workout", 1, new ArrayList<>());
 
+        when(authentication.getName()).thenReturn(userEmail);
         when(authorizationService.verifyAndGetPlan(planId, userEmail)).thenReturn(plan);
         when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenReturn(template);
         when(workoutTemplateMapper.toDto(template)).thenReturn(dto);
 
         // Act
-        WorkoutTemplateDto result = workoutTemplateService.addWorkoutTemplateToPlan(planId, userEmail, request);
+        WorkoutTemplateDto result = workoutTemplateService.addWorkoutTemplateToPlan(planId, request);
 
         // Assert
         assertNotNull(result);
@@ -85,12 +95,13 @@ public class WorkoutTemplateServiceImplTest {
         String userEmail = "user@example.com";
         CreateWorkoutTemplateRequest request = new CreateWorkoutTemplateRequest("Workout", 1);
 
+        when(authentication.getName()).thenReturn(userEmail);
         when(authorizationService.verifyAndGetPlan(planId, userEmail))
                 .thenThrow(new ResourceNotFoundException("TrainingPlan", planId));
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> {
-            workoutTemplateService.addWorkoutTemplateToPlan(planId, userEmail, request);
+            workoutTemplateService.addWorkoutTemplateToPlan(planId, request);
         });
     }
 
@@ -103,17 +114,16 @@ public class WorkoutTemplateServiceImplTest {
         WorkoutTemplate template = WorkoutTemplate.builder().trainingPlan(plan).build();
         WorkoutTemplateDto dto = new WorkoutTemplateDto(UUID.randomUUID(), "Workout", 1, new ArrayList<>());
 
-        when(authorizationService.verifyAndGetPlan(planId, userEmail)).thenReturn(plan);
+        when(authentication.getName()).thenReturn(userEmail);
         when(workoutTemplateRepository.findAllByTrainingPlanIdAndUserEmail(planId, userEmail)).thenReturn(Collections.singletonList(template));
         when(workoutTemplateMapper.toDto(template)).thenReturn(dto);
 
         // Act
-        List<WorkoutTemplateDto> result = workoutTemplateService.getWorkoutTemplatesForPlan(planId, userEmail);
+        List<WorkoutTemplateDto> result = workoutTemplateService.getWorkoutTemplatesForPlan(planId);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(authorizationService).verifyAndGetPlan(planId, userEmail);
     }
 
     @Test
@@ -124,11 +134,12 @@ public class WorkoutTemplateServiceImplTest {
         WorkoutTemplate template = WorkoutTemplate.builder().id(templateId).build();
         WorkoutTemplateDto dto = new WorkoutTemplateDto(templateId, "Workout", 1, new ArrayList<>());
 
+        when(authentication.getName()).thenReturn(userEmail);
         when(authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail)).thenReturn(template);
         when(workoutTemplateMapper.toDto(template)).thenReturn(dto);
 
         // Act
-        WorkoutTemplateDto result = workoutTemplateService.getWorkoutTemplateById(templateId, userEmail);
+        WorkoutTemplateDto result = workoutTemplateService.getWorkoutTemplateById(templateId);
 
         // Assert
         assertNotNull(result);
@@ -142,12 +153,13 @@ public class WorkoutTemplateServiceImplTest {
         UUID templateId = UUID.randomUUID();
         String userEmail = "user@example.com";
 
+        when(authentication.getName()).thenReturn(userEmail);
         when(authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail))
                 .thenThrow(new ResourceOwnershipException("WorkoutTemplate", templateId));
 
         // Act & Assert
         assertThrows(ResourceOwnershipException.class, () -> {
-            workoutTemplateService.getWorkoutTemplateById(templateId, userEmail);
+            workoutTemplateService.getWorkoutTemplateById(templateId);
         });
     }
 
@@ -158,11 +170,12 @@ public class WorkoutTemplateServiceImplTest {
         String userEmail = "user@example.com";
         WorkoutTemplate template = WorkoutTemplate.builder().id(templateId).build();
 
+        when(authentication.getName()).thenReturn(userEmail);
         when(authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail)).thenReturn(template);
         doNothing().when(workoutTemplateRepository).delete(template);
 
         // Act
-        workoutTemplateService.deleteWorkoutTemplate(templateId, userEmail);
+        workoutTemplateService.deleteWorkoutTemplate(templateId);
 
         // Assert
         verify(authorizationService).verifyAndGetWorkoutTemplate(templateId, userEmail);
@@ -175,12 +188,13 @@ public class WorkoutTemplateServiceImplTest {
         UUID templateId = UUID.randomUUID();
         String userEmail = "user@example.com";
 
+        when(authentication.getName()).thenReturn(userEmail);
         doThrow(new ResourceNotFoundException("WorkoutTemplate", templateId))
                 .when(authorizationService).verifyAndGetWorkoutTemplate(templateId, userEmail);
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> {
-            workoutTemplateService.deleteWorkoutTemplate(templateId, userEmail);
+            workoutTemplateService.deleteWorkoutTemplate(templateId);
         });
     }
 }

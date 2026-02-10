@@ -9,6 +9,7 @@ import com.krzywdek19.workout_service.service.AuthorizationService;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
 import com.krzywdek19.workout_service.utils.WorkoutTemplateMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,8 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
 
     @Override
     @Transactional
-    public WorkoutTemplateDto addWorkoutTemplateToPlan(UUID planId, String userEmail, CreateWorkoutTemplateRequest request) {
+    public WorkoutTemplateDto addWorkoutTemplateToPlan(UUID planId, CreateWorkoutTemplateRequest request) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         var workoutTemplate = WorkoutTemplate.builder()
                 .name(request.name())
@@ -36,22 +38,24 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<WorkoutTemplateDto> getWorkoutTemplatesForPlan(UUID planId, String userEmail) {
-        authorizationService.verifyAndGetPlan(planId, userEmail);
+    public List<WorkoutTemplateDto> getWorkoutTemplatesForPlan(UUID planId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         List<WorkoutTemplate> templates = workoutTemplateRepository.findAllByTrainingPlanIdAndUserEmail(planId, userEmail);
         return templates.stream().map(workoutTemplateMapper::toDto).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public WorkoutTemplateDto getWorkoutTemplateById(UUID templateId, String userEmail) {
+    public WorkoutTemplateDto getWorkoutTemplateById(UUID templateId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
         return workoutTemplateMapper.toDto(workoutTemplate);
     }
 
     @Override
     @Transactional
-    public void deleteWorkoutTemplate(UUID templateId, String userEmail) {
+    public void deleteWorkoutTemplate(UUID templateId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
         workoutTemplateRepository.delete(workoutTemplate);
     }

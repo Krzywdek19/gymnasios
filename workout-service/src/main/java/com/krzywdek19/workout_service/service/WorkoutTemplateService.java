@@ -8,8 +8,8 @@ import java.util.UUID;
 
 
 public interface WorkoutTemplateService {
-    WorkoutTemplateDto addWorkoutTemplateToPlan(UUID planId, String userEmail, CreateWorkoutTemplateRequest request);
-    List<WorkoutTemplateDto> getWorkoutTemplatesForPlan(UUID planId, String userEmail);
-    WorkoutTemplateDto getWorkoutTemplateById(UUID templateId, String userEmail);
-    void deleteWorkoutTemplate(UUID templateId, String userEmail);
+    WorkoutTemplateDto addWorkoutTemplateToPlan(UUID planId, CreateWorkoutTemplateRequest request);
+    List<WorkoutTemplateDto> getWorkoutTemplatesForPlan(UUID planId);
+    WorkoutTemplateDto getWorkoutTemplateById(UUID templateId);
+    void deleteWorkoutTemplate(UUID templateId);
 }

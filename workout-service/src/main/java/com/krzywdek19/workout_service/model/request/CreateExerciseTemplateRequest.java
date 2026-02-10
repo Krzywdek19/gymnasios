@@ -7,13 +7,13 @@ import jakarta.validation.constraints.NotNull;
 public record CreateExerciseTemplateRequest(
         @NotBlank
         String name,
+        String notes,
         @NotNull
         @Min(1)
         Integer setsCount,
         @NotNull
         @Min(0)
-        Integer orderIndex,
-        String notes
+        Integer orderIndex
 ) {
 }
 

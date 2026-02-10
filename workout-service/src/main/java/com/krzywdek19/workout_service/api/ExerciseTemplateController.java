@@ -12,9 +12,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -30,11 +32,11 @@ public class ExerciseTemplateController {
             @ApiResponse(responseCode = "404", description = "Workout template not found or user does not have access")
     })
     @PostMapping("/workout-templates/{templateId}/exercise-templates")
+    @PreAuthorize("@access.workout(#templateId, authentication)")
     public ResponseEntity<ExerciseTemplateDto> addExerciseTemplate(
-            @Parameter(description = "ID of the workout template") @PathVariable Long templateId,
-            @RequestBody CreateExerciseTemplateRequest request,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        ExerciseTemplateDto createdTemplate = exerciseTemplateService.addExerciseTemplate(templateId, userId, request);
+            @Parameter(description = "ID of the workout template") @PathVariable UUID templateId,
+            @RequestBody CreateExerciseTemplateRequest request) {
+        ExerciseTemplateDto createdTemplate = exerciseTemplateService.addExerciseTemplate(templateId, request);
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
@@ -44,10 +46,10 @@ public class ExerciseTemplateController {
             @ApiResponse(responseCode = "404", description = "Workout template not found or user does not have access")
     })
     @GetMapping("/workout-templates/{templateId}/exercise-templates")
+    @PreAuthorize("@access.workout(#templateId, authentication)")
     public ResponseEntity<List<ExerciseTemplateDto>> getExerciseTemplatesForWorkout(
-            @Parameter(description = "ID of the workout template") @PathVariable Long templateId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        List<ExerciseTemplateDto> templates = exerciseTemplateService.getExerciseTemplatesForWorkout(templateId, userId);
+            @Parameter(description = "ID of the workout template") @PathVariable UUID templateId) {
+        List<ExerciseTemplateDto> templates = exerciseTemplateService.getExerciseTemplatesForWorkout(templateId);
         return ResponseEntity.ok(templates);
     }
 
@@ -57,11 +59,11 @@ public class ExerciseTemplateController {
             @ApiResponse(responseCode = "404", description = "Exercise template not found or user does not have access")
     })
     @PutMapping("/exercise-templates/{exerciseTemplateId}")
+    @PreAuthorize("@access.exercise(#exerciseTemplateId, authentication)")
     public ResponseEntity<ExerciseTemplateDto> updateExerciseTemplate(
-            @Parameter(description = "ID of the exercise template to update") @PathVariable Long exerciseTemplateId,
-            @RequestBody UpdateExerciseTemplateRequest request,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        ExerciseTemplateDto updatedTemplate = exerciseTemplateService.updateExerciseTemplate(exerciseTemplateId, userId, request);
+            @Parameter(description = "ID of the exercise template to update") @PathVariable UUID exerciseTemplateId,
+            @RequestBody UpdateExerciseTemplateRequest request) {
+        ExerciseTemplateDto updatedTemplate = exerciseTemplateService.updateExerciseTemplate(exerciseTemplateId, request);
         return ResponseEntity.ok(updatedTemplate);
     }
 
@@ -71,10 +73,10 @@ public class ExerciseTemplateController {
             @ApiResponse(responseCode = "404", description = "Exercise template not found or user does not have access")
     })
     @DeleteMapping("/exercise-templates/{exerciseTemplateId}")
+    @PreAuthorize("@access.exercise(#exerciseTemplateId, authentication)")
     public ResponseEntity<Void> deleteExerciseTemplate(
-            @Parameter(description = "ID of the exercise template to delete") @PathVariable Long exerciseTemplateId,
-            @Parameter(description = "ID of the user performing the action", required = true) @RequestHeader("x-user-id") String userId) {
-        exerciseTemplateService.deleteExerciseTemplate(exerciseTemplateId, userId);
+            @Parameter(description = "ID of the exercise template to delete") @PathVariable UUID exerciseTemplateId) {
+        exerciseTemplateService.deleteExerciseTemplate(exerciseTemplateId);
         return ResponseEntity.noContent().build();
     }
 }

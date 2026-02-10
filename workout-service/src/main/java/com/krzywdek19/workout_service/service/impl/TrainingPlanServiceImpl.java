@@ -9,6 +9,7 @@ import com.krzywdek19.workout_service.service.AuthorizationService;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
 import com.krzywdek19.workout_service.utils.TrainingPlanMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,8 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
 
     @Override
     @Transactional
-    public TrainingPlanDto createPlan(String userEmail, CreateTrainingPlanRequest request) {
+    public TrainingPlanDto createPlan(CreateTrainingPlanRequest request) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var trainingPlan = TrainingPlan.builder()
                 .name(request.name())
                 .userEmail(userEmail)
@@ -35,7 +37,8 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainingPlanDto> getPlansByUserEmail(String userEmail) {
+    public List<TrainingPlanDto> getPlansForCurrentUser() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         return trainingPlanRepository
                 .findAllByUserEmail(userEmail)
                 .stream().map(trainingPlanMapper::toDto)
@@ -44,14 +47,16 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
 
     @Override
     @Transactional(readOnly = true)
-    public TrainingPlanDto getPlanById(UUID planId, String userEmail) {
+    public TrainingPlanDto getPlanById(UUID planId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         return trainingPlanMapper.toDto(trainingPlan);
     }
 
     @Override
     @Transactional
-    public void deletePlan(UUID planId, String userEmail) {
+    public void deletePlan(UUID planId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         trainingPlanRepository.delete(trainingPlan);
     }
