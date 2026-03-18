@@ -2,6 +2,7 @@ package com.krzywdek19.workout_service.api;
 
 import com.krzywdek19.workout_service.model.dto.TrainingPlanDto;
 import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
+import com.krzywdek19.workout_service.model.request.UpdateTrainingPlanRequest;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +27,7 @@ public class TrainingPlanController {
 
     private final TrainingPlanService trainingPlanService;
 
+    //CREATE
     @Operation(summary = "Create a new training plan", description = "Creates a new training plan for the current user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Training plan created successfully"),
@@ -38,6 +40,7 @@ public class TrainingPlanController {
         return new ResponseEntity<>(createdPlan, HttpStatus.CREATED);
     }
 
+    //READ
     @Operation(summary = "Get all user's training plans", description = "Retrieves a list of all training plans belonging to the current user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of training plans")
@@ -60,7 +63,15 @@ public class TrainingPlanController {
         TrainingPlanDto plan = trainingPlanService.getPlanById(planId);
         return ResponseEntity.ok(plan);
     }
+    //UPDATE
+    @PutMapping("/{planId}")
+    @PreAuthorize("@access.plan(#planId, authentication)")
+    public ResponseEntity<TrainingPlanDto> updatePlan(@PathVariable UUID planId, @RequestBody UpdateTrainingPlanRequest request){
+        TrainingPlanDto updatedPlan = trainingPlanService.updatePlan(planId, request);
+        return ResponseEntity.ok(updatedPlan);
+    }
 
+    //DELETE
     @Operation(summary = "Delete a training plan", description = "Deletes a specific training plan by its ID, verifying user ownership.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Training plan deleted successfully"),

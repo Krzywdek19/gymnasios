@@ -2,12 +2,8 @@ package com.krzywdek19.workout_service.service.impl;
 
 import com.krzywdek19.workout_service.exceptions.ResourceNotFoundException;
 import com.krzywdek19.workout_service.exceptions.ResourceOwnershipException;
-import com.krzywdek19.workout_service.model.ExerciseTemplate;
-import com.krzywdek19.workout_service.model.TrainingPlan;
-import com.krzywdek19.workout_service.model.WorkoutTemplate;
-import com.krzywdek19.workout_service.repository.ExerciseTemplateRepository;
-import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
-import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
+import com.krzywdek19.workout_service.model.*;
+import com.krzywdek19.workout_service.repository.*;
 import com.krzywdek19.workout_service.service.AuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +18,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private final TrainingPlanRepository trainingPlanRepository;
     private final WorkoutTemplateRepository workoutTemplateRepository;
     private final ExerciseTemplateRepository exerciseTemplateRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final ExerciseSessionRepository exerciseSessionRepository;
+    private final SetSessionRepository setSessionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -56,5 +55,41 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             throw new ResourceOwnershipException("ExerciseTemplate", exerciseTemplateId);
         }
         return template;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public WorkoutSession verifyAndGetWorkoutSession(UUID workoutSessionId, String userEmail) {
+        WorkoutSession session = workoutSessionRepository.findById(workoutSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("WorkoutSession", workoutSessionId));
+
+        if (!session.getUserEmail().equals(userEmail)) {
+            throw new ResourceOwnershipException("WorkoutSession", workoutSessionId);
+        }
+        return session;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ExerciseSession verifyAndGetExerciseSession(UUID exerciseSessionId, String userEmail) {
+        ExerciseSession session = exerciseSessionRepository.findByIdWithWorkoutSession(exerciseSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("ExerciseSession", exerciseSessionId));
+
+        if (!session.getWorkoutSession().getUserEmail().equals(userEmail)) {
+            throw new ResourceOwnershipException("ExerciseSession", exerciseSessionId);
+        }
+        return session;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SetSession verifyAndGetSetSession(UUID setSessionId, String userEmail) {
+        SetSession setSession = setSessionRepository.findByIdWithExerciseSessionAndWorkoutSession(setSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("SetSession", setSessionId));
+
+        if (!setSession.getExerciseSession().getWorkoutSession().getUserEmail().equals(userEmail)) {
+            throw new ResourceOwnershipException("SetSession", setSessionId);
+        }
+        return setSession;
     }
 }

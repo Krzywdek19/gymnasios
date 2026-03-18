@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public interface ExerciseTemplateService {
     ExerciseTemplateDto addExerciseTemplate(UUID workoutTemplateId, CreateExerciseTemplateRequest request);
+    ExerciseTemplateDto getExerciseTemplateById(UUID exerciseTemplateId);
     List<ExerciseTemplateDto> getExerciseTemplatesForWorkout(UUID workoutTemplateId);
     ExerciseTemplateDto updateExerciseTemplate(UUID exerciseTemplateId, UpdateExerciseTemplateRequest request);
     void deleteExerciseTemplate(UUID exerciseTemplateId);

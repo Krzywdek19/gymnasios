@@ -5,6 +5,7 @@ import com.krzywdek19.workout_service.model.enums.WorkoutSessionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 @Repository
@@ -12,5 +13,6 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     Optional<WorkoutSession> findByUserEmailAndFinishedAtIsNull(String userEmail);
     Optional<WorkoutSession> findByUserEmailAndStatus(String userEmail, WorkoutSessionStatus status);
     boolean existsByUserEmailAndStatusIsNot(String userEmail, WorkoutSessionStatus status);
+    List<WorkoutSession> findAllByUserEmailOrderByStartedAtDesc(String userEmail);
 }
 

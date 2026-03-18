@@ -22,6 +22,7 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     private final ExerciseTemplateMapper exerciseTemplateMapper;
     private final AuthorizationServiceImpl authorizationService;
 
+
     @Override
     @Transactional
     public ExerciseTemplateDto addExerciseTemplate(UUID workoutTemplateId, CreateExerciseTemplateRequest request) {
@@ -35,6 +36,14 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
                 .setsCount(request.setsCount())
                 .build();
         return exerciseTemplateMapper.toDto(exerciseTemplateRepository.save(exerciseTemplate));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ExerciseTemplateDto getExerciseTemplateById(UUID exerciseTemplateId) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        ExerciseTemplate exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
+        return exerciseTemplateMapper.toDto(exerciseTemplate);
     }
 
     @Override

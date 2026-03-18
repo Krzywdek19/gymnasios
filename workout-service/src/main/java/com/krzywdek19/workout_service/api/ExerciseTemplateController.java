@@ -26,6 +26,7 @@ public class ExerciseTemplateController {
 
     private final ExerciseTemplateService exerciseTemplateService;
 
+    //CREATE
     @Operation(summary = "Add an exercise template to a workout template", description = "Creates and adds a new exercise template to a specified workout template.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Exercise template created successfully"),
@@ -40,6 +41,7 @@ public class ExerciseTemplateController {
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
+    //READ
     @Operation(summary = "Get all exercise templates for a workout template", description = "Retrieves all exercise templates for a specific workout template.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of exercise templates"),
@@ -53,6 +55,16 @@ public class ExerciseTemplateController {
         return ResponseEntity.ok(templates);
     }
 
+    @GetMapping("/{exerciseTemplateId}")
+    @PreAuthorize("@access.exerciseTemplate(#exerciseTemplateId, authentication)")
+    public ResponseEntity<ExerciseTemplateDto> getExerciseTemplateById(
+            @PathVariable UUID exerciseTemplateId
+    ) {
+        ExerciseTemplateDto dto = exerciseTemplateService.getExerciseTemplateById(exerciseTemplateId);
+        return ResponseEntity.ok(dto);
+    }
+
+    //UPDATE
     @Operation(summary = "Update an exercise template", description = "Updates an existing exercise template, verifying user ownership.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Exercise template updated successfully"),
@@ -67,6 +79,7 @@ public class ExerciseTemplateController {
         return ResponseEntity.ok(updatedTemplate);
     }
 
+    //DELETE
     @Operation(summary = "Delete an exercise template", description = "Deletes a specific exercise template by its ID, verifying user ownership.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Exercise template deleted successfully"),

@@ -4,6 +4,7 @@ package com.krzywdek19.workout_service.service.impl;
 import com.krzywdek19.workout_service.model.WorkoutTemplate;
 import com.krzywdek19.workout_service.model.dto.WorkoutTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateWorkoutTemplateRequest;
+import com.krzywdek19.workout_service.model.request.UpdateWorkoutTemplateRequest;
 import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
@@ -50,6 +51,17 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
         return workoutTemplateMapper.toDto(workoutTemplate);
+    }
+
+    @Override
+    @Transactional
+    public WorkoutTemplateDto updateWorkoutTemplate(UUID templateId, UpdateWorkoutTemplateRequest request) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        WorkoutTemplate workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
+
+        workoutTemplate.setName(request.name());
+
+        return workoutTemplateMapper.toDto(workoutTemplateRepository.save(workoutTemplate));
     }
 
     @Override

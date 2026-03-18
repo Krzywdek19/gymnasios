@@ -2,12 +2,14 @@ package com.krzywdek19.workout_service.api;
 
 import com.krzywdek19.workout_service.model.dto.WorkoutTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateWorkoutTemplateRequest;
+import com.krzywdek19.workout_service.model.request.UpdateWorkoutTemplateRequest;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class WorkoutTemplateController {
 
     private final WorkoutTemplateService workoutTemplateService;
 
+    //CREATE
     @Operation(summary = "Add a workout template to a training plan", description = "Creates and adds a new workout template to a specified training plan.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Workout template created successfully"),
@@ -39,6 +42,7 @@ public class WorkoutTemplateController {
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
+    //READ
     @Operation(summary = "Get all workout templates for a training plan", description = "Retrieves all workout templates associated with a specific training plan.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of workout templates"),
@@ -65,6 +69,18 @@ public class WorkoutTemplateController {
         return ResponseEntity.ok(template);
     }
 
+    //UPDATE
+    @PutMapping("/{templateId}")
+    @PreAuthorize("@access.workout(#templateId, authentication)")
+    public ResponseEntity<WorkoutTemplateDto> updateWorkoutTemplate(
+            @PathVariable UUID templateId,
+            @Valid @RequestBody UpdateWorkoutTemplateRequest request
+    ) {
+        WorkoutTemplateDto updated = workoutTemplateService.updateWorkoutTemplate(templateId, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    //DELETE
     @Operation(summary = "Delete a workout template", description = "Deletes a specific workout template by its ID, verifying user ownership.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Workout template deleted successfully"),

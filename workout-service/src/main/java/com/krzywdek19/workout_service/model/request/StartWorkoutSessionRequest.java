@@ -1,5 +1,7 @@
 package com.krzywdek19.workout_service.model.request;
 
 
-public record StartWorkoutSessionRequest(Long workoutTemplateId){
+import java.util.UUID;
+
+public record StartWorkoutSessionRequest(UUID workoutTemplateId){
 }

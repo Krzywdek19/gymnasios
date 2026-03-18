@@ -4,6 +4,7 @@ import com.krzywdek19.workout_service.model.TrainingPlan;
 import com.krzywdek19.workout_service.model.dto.TrainingPlanDto;
 import com.krzywdek19.workout_service.model.enums.TrainingPlanStatus;
 import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
+import com.krzywdek19.workout_service.model.request.UpdateTrainingPlanRequest;
 import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
@@ -51,6 +52,14 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         return trainingPlanMapper.toDto(trainingPlan);
+    }
+
+    @Override
+    public TrainingPlanDto updatePlan(UUID planId, UpdateTrainingPlanRequest request) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
+        trainingPlan.setName(request.name());
+        return trainingPlanMapper.toDto(trainingPlanRepository.save(trainingPlan));
     }
 
     @Override
