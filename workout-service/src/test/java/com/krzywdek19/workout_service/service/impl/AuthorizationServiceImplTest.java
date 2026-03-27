@@ -5,9 +5,7 @@ import com.krzywdek19.workout_service.exceptions.ResourceOwnershipException;
 import com.krzywdek19.workout_service.model.ExerciseTemplate;
 import com.krzywdek19.workout_service.model.TrainingPlan;
 import com.krzywdek19.workout_service.model.WorkoutTemplate;
-import com.krzywdek19.workout_service.repository.ExerciseTemplateRepository;
-import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
-import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
+import com.krzywdek19.workout_service.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +32,15 @@ public class AuthorizationServiceImplTest {
     @Mock
     private ExerciseTemplateRepository exerciseTemplateRepository;
 
+    @Mock
+    private WorkoutSessionRepository workoutSessionRepository;
+
+    @Mock
+    private ExerciseSessionRepository exerciseSessionRepository;
+
+    @Mock
+    private SetSessionRepository setSessionRepository;
+
     private AuthorizationServiceImpl authorizationService;
 
     @BeforeEach
@@ -41,7 +48,10 @@ public class AuthorizationServiceImplTest {
         authorizationService = new AuthorizationServiceImpl(
                 trainingPlanRepository,
                 workoutTemplateRepository,
-                exerciseTemplateRepository
+                exerciseTemplateRepository,
+                workoutSessionRepository,
+                exerciseSessionRepository,
+                setSessionRepository
         );
     }
 

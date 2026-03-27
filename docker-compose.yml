@@ -3,41 +3,94 @@ version: "3.9"
 services:
   redis:
     image: redis:7
+    container_name: gymnasios-redis
     ports:
       - "6379:6379"
+    restart: unless-stopped
 
-  discovery:
-    build: ./discovery-server
+  config-server:
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
+    container_name: gymnasios-config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8888
+    restart: unless-stopped
+
+  discovery-server:
+    build:
+      context: .
+      dockerfile: discovery-server/Dockerfile
+    container_name: gymnasios-discovery-server
     ports:
       - "8761:8761"
-
+    depends_on:
+      - config-server
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8761
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
+    restart: unless-stopped
 
   user-service:
-    build: ./user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    container_name: gymnasios-user-service
     ports:
       - "8081:8081"
     depends_on:
       - redis
-      - discovery
+      - config-server
+      - discovery-server
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8081
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    restart: unless-stopped
 
   workout-service:
-    build: ./workout-service
+    build:
+      context: .
+      dockerfile: workout-service/Dockerfile
+    container_name: gymnasios-workout-service
     ports:
       - "8082:8082"
     depends_on:
-      - discovery
+      - config-server
+      - discovery-server
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8082
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
+    restart: unless-stopped
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: gymnasios-api-gateway
     ports:
       - "8080:8080"
     depends_on:
-      - discovery
+      - redis
+      - config-server
+      - discovery-server
       - user-service
       - workout-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    restart: unless-stopped

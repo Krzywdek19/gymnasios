@@ -6,9 +6,14 @@ import com.krzywdek19.workout_service.model.request.UpdateExerciseTemplateReques
 import com.krzywdek19.workout_service.service.ExerciseTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,74 +26,126 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@Tag(name = "Exercise Template", description = "Endpoints for managing exercise templates")
+@Tag(
+        name = "Exercise Templates",
+        description = "Endpoints for creating, listing, updating, and deleting exercise templates."
+)
 public class ExerciseTemplateController {
 
     private final ExerciseTemplateService exerciseTemplateService;
 
-    //CREATE
-    @Operation(summary = "Add an exercise template to a workout template", description = "Creates and adds a new exercise template to a specified workout template.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Exercise template created successfully"),
-            @ApiResponse(responseCode = "404", description = "Workout template not found or user does not have access")
+    @Operation(
+            summary = "Add an exercise template to a workout template",
+            description = "Creates an exercise template and attaches it to the specified workout template."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Exercise template created successfully",
+                    content = @Content(schema = @Schema(implementation = ExerciseTemplateDto.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload"),
+            @ApiResponse(responseCode = "404", description = "Workout template not found or access denied")
     })
     @PostMapping("/workout-templates/{templateId}/exercise-templates")
     @PreAuthorize("@access.workout(#templateId, authentication)")
     public ResponseEntity<ExerciseTemplateDto> addExerciseTemplate(
-            @Parameter(description = "ID of the workout template") @PathVariable UUID templateId,
-            @RequestBody CreateExerciseTemplateRequest request) {
+            @Parameter(
+                    description = "Workout template identifier",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @PathVariable UUID templateId,
+            @Valid
+            @RequestBody(
+                    description = "Exercise template creation payload",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = CreateExerciseTemplateRequest.class))
+            )
+            @org.springframework.web.bind.annotation.RequestBody CreateExerciseTemplateRequest request
+    ) {
         ExerciseTemplateDto createdTemplate = exerciseTemplateService.addExerciseTemplate(templateId, request);
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
-    //READ
-    @Operation(summary = "Get all exercise templates for a workout template", description = "Retrieves all exercise templates for a specific workout template.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of exercise templates"),
-            @ApiResponse(responseCode = "404", description = "Workout template not found or user does not have access")
+    @Operation(
+            summary = "Get all exercise templates for a workout template",
+            description = "Returns all exercise templates associated with the specified workout template."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Exercise templates retrieved successfully",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ExerciseTemplateDto.class)))
+            ),
+            @ApiResponse(responseCode = "404", description = "Workout template not found or access denied")
     })
     @GetMapping("/workout-templates/{templateId}/exercise-templates")
     @PreAuthorize("@access.workout(#templateId, authentication)")
     public ResponseEntity<List<ExerciseTemplateDto>> getExerciseTemplatesForWorkout(
-            @Parameter(description = "ID of the workout template") @PathVariable UUID templateId) {
+            @Parameter(
+                    description = "Workout template identifier",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @PathVariable UUID templateId
+    ) {
         List<ExerciseTemplateDto> templates = exerciseTemplateService.getExerciseTemplatesForWorkout(templateId);
         return ResponseEntity.ok(templates);
     }
 
-    @GetMapping("/{exerciseTemplateId}")
-    @PreAuthorize("@access.exerciseTemplate(#exerciseTemplateId, authentication)")
-    public ResponseEntity<ExerciseTemplateDto> getExerciseTemplateById(
-            @PathVariable UUID exerciseTemplateId
-    ) {
-        ExerciseTemplateDto dto = exerciseTemplateService.getExerciseTemplateById(exerciseTemplateId);
-        return ResponseEntity.ok(dto);
-    }
-
-    //UPDATE
-    @Operation(summary = "Update an exercise template", description = "Updates an existing exercise template, verifying user ownership.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Exercise template updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Exercise template not found or user does not have access")
+    @Operation(
+            summary = "Update an exercise template",
+            description = "Updates an existing exercise template after ownership verification."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Exercise template updated successfully",
+                    content = @Content(schema = @Schema(implementation = ExerciseTemplateDto.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload"),
+            @ApiResponse(responseCode = "404", description = "Exercise template not found or access denied")
     })
     @PutMapping("/exercise-templates/{exerciseTemplateId}")
     @PreAuthorize("@access.exercise(#exerciseTemplateId, authentication)")
     public ResponseEntity<ExerciseTemplateDto> updateExerciseTemplate(
-            @Parameter(description = "ID of the exercise template to update") @PathVariable UUID exerciseTemplateId,
-            @RequestBody UpdateExerciseTemplateRequest request) {
+            @Parameter(
+                    description = "Exercise template identifier",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @PathVariable UUID exerciseTemplateId,
+            @Valid
+            @RequestBody(
+                    description = "Exercise template update payload",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = UpdateExerciseTemplateRequest.class))
+            )
+            @org.springframework.web.bind.annotation.RequestBody UpdateExerciseTemplateRequest request
+    ) {
         ExerciseTemplateDto updatedTemplate = exerciseTemplateService.updateExerciseTemplate(exerciseTemplateId, request);
         return ResponseEntity.ok(updatedTemplate);
     }
 
-    //DELETE
-    @Operation(summary = "Delete an exercise template", description = "Deletes a specific exercise template by its ID, verifying user ownership.")
-    @ApiResponses(value = {
+    @Operation(
+            summary = "Delete an exercise template",
+            description = "Deletes an exercise template after ownership verification."
+    )
+    @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Exercise template deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Exercise template not found or user does not have access")
+            @ApiResponse(responseCode = "404", description = "Exercise template not found or access denied")
     })
     @DeleteMapping("/exercise-templates/{exerciseTemplateId}")
     @PreAuthorize("@access.exercise(#exerciseTemplateId, authentication)")
     public ResponseEntity<Void> deleteExerciseTemplate(
-            @Parameter(description = "ID of the exercise template to delete") @PathVariable UUID exerciseTemplateId) {
+            @Parameter(
+                    description = "Exercise template identifier",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @PathVariable UUID exerciseTemplateId
+    ) {
         exerciseTemplateService.deleteExerciseTemplate(exerciseTemplateId);
         return ResponseEntity.noContent().build();
     }
