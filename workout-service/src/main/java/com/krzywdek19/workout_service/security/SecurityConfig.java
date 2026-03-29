@@ -1,5 +1,6 @@
 package com.krzywdek19.workout_service.security;
 
+<<<<<<< HEAD
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,3 +34,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+
