@@ -2,6 +2,7 @@ package com.krzywdek19.workout_service.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class SetSession {
     @Id
     @GeneratedValue

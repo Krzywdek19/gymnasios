@@ -5,6 +5,7 @@ import com.krzywdek19.workout_service.model.dto.ExerciseTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateExerciseTemplateRequest;
 import com.krzywdek19.workout_service.model.request.UpdateExerciseTemplateRequest;
 import com.krzywdek19.workout_service.repository.ExerciseTemplateRepository;
+import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.ExerciseTemplateService;
 import com.krzywdek19.workout_service.utils.ExerciseTemplateMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,14 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     private final ExerciseTemplateRepository exerciseTemplateRepository;
     private final ExerciseTemplateMapper exerciseTemplateMapper;
     private final AuthorizationServiceImpl authorizationService;
+    private final CurrentUserService currentUserService;
 
 
     @Override
     @Transactional
     public ExerciseTemplateDto addExerciseTemplate(UUID workoutTemplateId, CreateExerciseTemplateRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(workoutTemplateId, email);
+        String userEmail = currentUserService.getCurrentUserEmail();
+        var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(workoutTemplateId, userEmail);
         var exerciseTemplate = ExerciseTemplate.builder()
                 .workoutTemplate(workoutTemplate)
                 .name(request.name())
@@ -41,7 +43,7 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     @Override
     @Transactional(readOnly = true)
     public ExerciseTemplateDto getExerciseTemplateById(UUID exerciseTemplateId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         ExerciseTemplate exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
         return exerciseTemplateMapper.toDto(exerciseTemplate);
     }
@@ -49,8 +51,8 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<ExerciseTemplateDto> getExerciseTemplatesForWorkout(UUID workoutTemplateId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        authorizationService.verifyAndGetWorkoutTemplate(workoutTemplateId, email);
+        String userEmail = currentUserService.getCurrentUserEmail();
+        authorizationService.verifyAndGetWorkoutTemplate(workoutTemplateId, userEmail);
         return exerciseTemplateRepository.findAllByWorkoutTemplateId(workoutTemplateId)
                 .stream()
                 .map(exerciseTemplateMapper::toDto)
@@ -60,8 +62,8 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     @Override
     @Transactional
     public ExerciseTemplateDto updateExerciseTemplate(UUID exerciseTemplateId, UpdateExerciseTemplateRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, email);
+        String userEmail = currentUserService.getCurrentUserEmail();
+        var exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
         exerciseTemplate.setName(request.name());
         exerciseTemplate.setOrderIndex(request.orderIndex());
         exerciseTemplate.setSetsCount(request.setsCount());
@@ -72,8 +74,8 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     @Override
     @Transactional
     public void deleteExerciseTemplate(UUID exerciseTemplateId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        var exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, email);
+        String userEmail = currentUserService.getCurrentUserEmail();
+        var exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
         exerciseTemplateRepository.delete(exerciseTemplate);
     }
 }

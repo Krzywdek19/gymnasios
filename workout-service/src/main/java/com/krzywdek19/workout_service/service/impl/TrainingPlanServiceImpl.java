@@ -7,6 +7,7 @@ import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
 import com.krzywdek19.workout_service.model.request.UpdateTrainingPlanRequest;
 import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
+import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
 import com.krzywdek19.workout_service.utils.TrainingPlanMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,12 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
     private final TrainingPlanRepository trainingPlanRepository;
     private final TrainingPlanMapper trainingPlanMapper;
     private final AuthorizationService authorizationService;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
     public TrainingPlanDto createPlan(CreateTrainingPlanRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var trainingPlan = TrainingPlan.builder()
                 .name(request.name())
                 .userEmail(userEmail)
@@ -39,7 +41,7 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
     @Override
     @Transactional(readOnly = true)
     public List<TrainingPlanDto> getPlansForCurrentUser() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         return trainingPlanRepository
                 .findAllByUserEmail(userEmail)
                 .stream().map(trainingPlanMapper::toDto)
@@ -49,14 +51,14 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
     @Override
     @Transactional(readOnly = true)
     public TrainingPlanDto getPlanById(UUID planId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         return trainingPlanMapper.toDto(trainingPlan);
     }
 
     @Override
     public TrainingPlanDto updatePlan(UUID planId, UpdateTrainingPlanRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         trainingPlan.setName(request.name());
         return trainingPlanMapper.toDto(trainingPlanRepository.save(trainingPlan));
@@ -65,7 +67,7 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
     @Override
     @Transactional
     public void deletePlan(UUID planId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         trainingPlanRepository.delete(trainingPlan);
     }

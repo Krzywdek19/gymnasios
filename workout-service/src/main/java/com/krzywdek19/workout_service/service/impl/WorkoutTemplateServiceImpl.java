@@ -7,6 +7,7 @@ import com.krzywdek19.workout_service.model.request.CreateWorkoutTemplateRequest
 import com.krzywdek19.workout_service.model.request.UpdateWorkoutTemplateRequest;
 import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
+import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
 import com.krzywdek19.workout_service.utils.WorkoutTemplateMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,12 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
     private final WorkoutTemplateRepository workoutTemplateRepository;
     private final WorkoutTemplateMapper workoutTemplateMapper;
     private final AuthorizationService authorizationService;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
     public WorkoutTemplateDto addWorkoutTemplateToPlan(UUID planId, CreateWorkoutTemplateRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
         var workoutTemplate = WorkoutTemplate.builder()
                 .name(request.name())
@@ -40,7 +42,7 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
     @Override
     @Transactional(readOnly = true)
     public List<WorkoutTemplateDto> getWorkoutTemplatesForPlan(UUID planId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         List<WorkoutTemplate> templates = workoutTemplateRepository.findAllByTrainingPlanIdAndUserEmail(planId, userEmail);
         return templates.stream().map(workoutTemplateMapper::toDto).toList();
     }
@@ -48,7 +50,7 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
     @Override
     @Transactional(readOnly = true)
     public WorkoutTemplateDto getWorkoutTemplateById(UUID templateId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
         return workoutTemplateMapper.toDto(workoutTemplate);
     }
@@ -56,7 +58,7 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
     @Override
     @Transactional
     public WorkoutTemplateDto updateWorkoutTemplate(UUID templateId, UpdateWorkoutTemplateRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         WorkoutTemplate workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
 
         workoutTemplate.setName(request.name());
@@ -67,7 +69,7 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
     @Override
     @Transactional
     public void deleteWorkoutTemplate(UUID templateId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
         workoutTemplateRepository.delete(workoutTemplate);
     }

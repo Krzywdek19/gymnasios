@@ -3,6 +3,7 @@ package com.krzywdek19.workout_service.model;
 import com.krzywdek19.workout_service.model.enums.WorkoutSessionStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class WorkoutSession {
     @Id
     @GeneratedValue

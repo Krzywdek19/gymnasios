@@ -15,7 +15,7 @@ COPY workout-service/pom.xml workout-service/pom.xml
 COPY workout-service/src workout-service/src
 
 RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
-RUN ./mvnw -pl workout-service -am clean package -DskipTests
+RUN ./mvnw -pl workout-service -am clean package -Dmaven.test.skip=true
 
 FROM eclipse-temurin:17-jre-alpine
 

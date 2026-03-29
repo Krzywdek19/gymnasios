@@ -12,6 +12,7 @@ import com.krzywdek19.workout_service.model.enums.WorkoutSessionStatus;
 import com.krzywdek19.workout_service.model.request.StartWorkoutSessionRequest;
 import com.krzywdek19.workout_service.repository.WorkoutSessionRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
+import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.WorkoutSessionService;
 import com.krzywdek19.workout_service.utils.WorkoutSessionMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,16 +29,15 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class WorkoutSessionServiceImpl implements WorkoutSessionService {
-
     private final WorkoutSessionRepository workoutSessionRepository;
     private final AuthorizationService authorizationService;
     private final WorkoutSessionMapper workoutSessionMapper;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
     public WorkoutSessionDto startWorkoutSession(StartWorkoutSessionRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         workoutSessionRepository.findByUserEmailAndStatus(userEmail, WorkoutSessionStatus.IN_PROGRESS)
                 .ifPresent(session -> {
                     throw new ActiveWorkoutSessionException("User already has an active workout session.");
@@ -94,7 +94,7 @@ public class WorkoutSessionServiceImpl implements WorkoutSessionService {
     @Override
     @Transactional(readOnly = true)
     public WorkoutSessionDto getWorkoutSessionById(UUID workoutSessionId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserService.getCurrentUserEmail();
         WorkoutSession workoutSession = authorizationService.verifyAndGetWorkoutSession(workoutSessionId, userEmail);
         return workoutSessionMapper.toDto(workoutSession);
     }
@@ -102,8 +102,7 @@ public class WorkoutSessionServiceImpl implements WorkoutSessionService {
     @Override
     @Transactional(readOnly = true)
     public WorkoutSessionDto getActiveWorkoutSession() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         WorkoutSession workoutSession = workoutSessionRepository
                 .findByUserEmailAndStatus(userEmail, WorkoutSessionStatus.IN_PROGRESS)
                 .orElseThrow(() -> new ResourceNotFoundException("ActiveWorkoutSession", UUID.randomUUID()));
@@ -114,8 +113,7 @@ public class WorkoutSessionServiceImpl implements WorkoutSessionService {
     @Override
     @Transactional
     public WorkoutSessionDto finishWorkoutSession(UUID workoutSessionId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         WorkoutSession workoutSession = authorizationService.verifyAndGetWorkoutSession(workoutSessionId, userEmail);
 
         if (workoutSession.getStatus() != WorkoutSessionStatus.IN_PROGRESS) {
@@ -132,8 +130,7 @@ public class WorkoutSessionServiceImpl implements WorkoutSessionService {
     @Override
     @Transactional(readOnly = true)
     public List<WorkoutSessionDto> getAllUserWorkoutSessions() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         return workoutSessionRepository.findAllByUserEmailOrderByStartedAtDesc(userEmail)
                 .stream()
                 .map(workoutSessionMapper::toDto)

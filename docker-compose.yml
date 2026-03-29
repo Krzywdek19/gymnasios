@@ -18,6 +18,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8888
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     restart: unless-stopped
 
   discovery-server:
@@ -69,7 +74,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8082
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
     restart: unless-stopped
 

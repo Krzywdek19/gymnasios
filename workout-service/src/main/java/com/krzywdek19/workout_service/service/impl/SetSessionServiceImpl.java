@@ -6,6 +6,7 @@ import com.krzywdek19.workout_service.model.dto.SetSessionDto;
 import com.krzywdek19.workout_service.model.request.UpdateSetRequest;
 import com.krzywdek19.workout_service.repository.SetSessionRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
+import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.SetSessionService;
 import com.krzywdek19.workout_service.utils.SetSessionMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +20,15 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SetSessionServiceImpl implements SetSessionService {
-
     private final SetSessionRepository setSessionRepository;
     private final AuthorizationService authorizationService;
     private final SetSessionMapper setSessionMapper;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional(readOnly = true)
     public List<SetSessionDto> getSetSessionsForExercise(UUID exerciseSessionId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         ExerciseSession exerciseSession =
                 authorizationService.verifyAndGetExerciseSession(exerciseSessionId, userEmail);
 
@@ -41,8 +41,7 @@ public class SetSessionServiceImpl implements SetSessionService {
     @Override
     @Transactional(readOnly = true)
     public SetSessionDto getSetSessionById(UUID setSessionId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         SetSession setSession = authorizationService.verifyAndGetSetSession(setSessionId, userEmail);
         return setSessionMapper.toDto(setSession);
     }
@@ -50,8 +49,7 @@ public class SetSessionServiceImpl implements SetSessionService {
     @Override
     @Transactional
     public SetSessionDto updateSetSession(UUID setSessionId, UpdateSetRequest request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         SetSession setSession = authorizationService.verifyAndGetSetSession(setSessionId, userEmail);
 
         setSession.setReps(request.reps());
@@ -66,8 +64,7 @@ public class SetSessionServiceImpl implements SetSessionService {
     @Override
     @Transactional
     public void deleteSetSession(UUID setSessionId) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String userEmail = currentUserService.getCurrentUserEmail();
         SetSession setSession = authorizationService.verifyAndGetSetSession(setSessionId, userEmail);
         setSessionRepository.delete(setSession);
     }
