@@ -1,5 +1,6 @@
 package com.krzywdek19.api_gateway.security;
 
+import com.krzywdek19.api_gateway.config.DevAuthProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -19,6 +20,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private final PublicPaths publicPaths;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
+    private final DevAuthProperties devAuthProperties;
 
     private String key(String jti) {
         return "blacklist:jwt:" + jti;
@@ -42,9 +44,23 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         var authHeader = request.getHeaders().getFirst("Authorization");
-        log.info("GW auth header present: {}", authHeader != null);
+        boolean hasAuth = authHeader != null && authHeader.startsWith("Bearer ");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        log.info("GW auth header present: {}", hasAuth);
+
+        if (!hasAuth && devAuthProperties.isEnabled()) {
+            String email = devAuthProperties.getEmail();
+
+            var mutatedRequest = request.mutate()
+                    .header("X-User-Email", email)
+                    .build();
+
+            log.info("GW dev auth enabled, forwarding request with X-User-Email={}", email);
+
+            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        }
+
+        if (!hasAuth) {
             log.warn("GW missing or invalid Authorization header for path {}", path);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
