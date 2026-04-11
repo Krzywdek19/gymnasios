@@ -4,7 +4,6 @@ import com.krzywdek19.workout_service.model.dto.WorkoutTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateWorkoutTemplateRequest;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,7 +33,7 @@ public class WorkoutTemplateController {
     private final WorkoutTemplateService workoutTemplateService;
 
     @Operation(
-            summary = "Add a workout template to a training plan",
+            summary = "Create a workout template in a training plan",
             description = "Creates a workout template and attaches it to the specified training plan."
     )
     @ApiResponses({
@@ -48,12 +47,7 @@ public class WorkoutTemplateController {
     })
     @PostMapping("/training-plans/{planId}/workout-templates")
     @PreAuthorize("@access.plan(#planId, authentication)")
-    public ResponseEntity<WorkoutTemplateDto> addWorkoutTemplateToPlan(
-            @Parameter(
-                    description = "Training plan identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
+    public ResponseEntity<WorkoutTemplateDto> createWorkoutTemplate(
             @PathVariable UUID planId,
             @Valid
             @RequestBody(
@@ -64,11 +58,11 @@ public class WorkoutTemplateController {
             @org.springframework.web.bind.annotation.RequestBody CreateWorkoutTemplateRequest request
     ) {
         WorkoutTemplateDto createdTemplate = workoutTemplateService.addWorkoutTemplateToPlan(planId, request);
-        return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTemplate);
     }
 
     @Operation(
-            summary = "Get all workout templates for a training plan",
+            summary = "Get workout templates for a training plan",
             description = "Returns all workout templates associated with the specified training plan."
     )
     @ApiResponses({
@@ -81,16 +75,8 @@ public class WorkoutTemplateController {
     })
     @GetMapping("/training-plans/{planId}/workout-templates")
     @PreAuthorize("@access.plan(#planId, authentication)")
-    public ResponseEntity<List<WorkoutTemplateDto>> getWorkoutTemplatesForPlan(
-            @Parameter(
-                    description = "Training plan identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID planId
-    ) {
-        List<WorkoutTemplateDto> templates = workoutTemplateService.getWorkoutTemplatesForPlan(planId);
-        return ResponseEntity.ok(templates);
+    public ResponseEntity<List<WorkoutTemplateDto>> getWorkoutTemplatesForPlan(@PathVariable UUID planId) {
+        return ResponseEntity.ok(workoutTemplateService.getWorkoutTemplatesForPlan(planId));
     }
 
     @Operation(
@@ -105,18 +91,10 @@ public class WorkoutTemplateController {
             ),
             @ApiResponse(responseCode = "404", description = "Workout template not found or access denied")
     })
-    @GetMapping("/workout-templates/{templateId}")
-    @PreAuthorize("@access.workout(#templateId, authentication)")
-    public ResponseEntity<WorkoutTemplateDto> getWorkoutTemplateById(
-            @Parameter(
-                    description = "Workout template identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID templateId
-    ) {
-        WorkoutTemplateDto template = workoutTemplateService.getWorkoutTemplateById(templateId);
-        return ResponseEntity.ok(template);
+    @GetMapping("/workout-templates/{workoutTemplateId}")
+    @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
+    public ResponseEntity<WorkoutTemplateDto> getWorkoutTemplateById(@PathVariable UUID workoutTemplateId) {
+        return ResponseEntity.ok(workoutTemplateService.getWorkoutTemplateById(workoutTemplateId));
     }
 
     @Operation(
@@ -127,17 +105,10 @@ public class WorkoutTemplateController {
             @ApiResponse(responseCode = "204", description = "Workout template deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Workout template not found or access denied")
     })
-    @DeleteMapping("/workout-templates/{templateId}")
-    @PreAuthorize("@access.workout(#templateId, authentication)")
-    public ResponseEntity<Void> deleteWorkoutTemplate(
-            @Parameter(
-                    description = "Workout template identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID templateId
-    ) {
-        workoutTemplateService.deleteWorkoutTemplate(templateId);
+    @DeleteMapping("/workout-templates/{workoutTemplateId}")
+    @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
+    public ResponseEntity<Void> deleteWorkoutTemplate(@PathVariable UUID workoutTemplateId) {
+        workoutTemplateService.deleteWorkoutTemplate(workoutTemplateId);
         return ResponseEntity.noContent().build();
     }
 }

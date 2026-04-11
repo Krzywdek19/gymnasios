@@ -29,6 +29,8 @@ public class ExerciseTemplate {
     @Column(nullable = false)
     private int setsCount;
     @Column(nullable = false)
+    private String reps;
+    @Column(nullable = false)
     private int orderIndex;
     private String notes;
     @Column(nullable = false, updatable = false)
@@ -37,6 +39,4 @@ public class ExerciseTemplate {
     @Column(nullable = false)
     @LastModifiedDate
     private Instant updatedAt;
-
-
 }

@@ -4,7 +4,6 @@ import com.krzywdek19.workout_service.model.dto.TrainingPlanDto;
 import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -56,7 +55,7 @@ public class TrainingPlanController {
             @org.springframework.web.bind.annotation.RequestBody CreateTrainingPlanRequest request
     ) {
         TrainingPlanDto createdPlan = trainingPlanService.createPlan(request);
-        return new ResponseEntity<>(createdPlan, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlan);
     }
 
     @Operation(
@@ -71,9 +70,8 @@ public class TrainingPlanController {
             )
     })
     @GetMapping
-    public ResponseEntity<List<TrainingPlanDto>> getUserPlans() {
-        List<TrainingPlanDto> plans = trainingPlanService.getPlansForCurrentUser();
-        return ResponseEntity.ok(plans);
+    public ResponseEntity<List<TrainingPlanDto>> getTrainingPlans() {
+        return ResponseEntity.ok(trainingPlanService.getPlansForCurrentUser());
     }
 
     @Operation(
@@ -90,16 +88,8 @@ public class TrainingPlanController {
     })
     @GetMapping("/{planId}")
     @PreAuthorize("@access.plan(#planId, authentication)")
-    public ResponseEntity<TrainingPlanDto> getTrainingPlanById(
-            @Parameter(
-                    description = "Training plan identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID planId
-    ) {
-        TrainingPlanDto plan = trainingPlanService.getPlanById(planId);
-        return ResponseEntity.ok(plan);
+    public ResponseEntity<TrainingPlanDto> getTrainingPlanById(@PathVariable UUID planId) {
+        return ResponseEntity.ok(trainingPlanService.getPlanById(planId));
     }
 
     @Operation(
@@ -112,14 +102,7 @@ public class TrainingPlanController {
     })
     @DeleteMapping("/{planId}")
     @PreAuthorize("@access.plan(#planId, authentication)")
-    public ResponseEntity<Void> deleteTrainingPlan(
-            @Parameter(
-                    description = "Training plan identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID planId
-    ) {
+    public ResponseEntity<Void> deleteTrainingPlan(@PathVariable UUID planId) {
         trainingPlanService.deletePlan(planId);
         return ResponseEntity.noContent().build();
     }

@@ -4,7 +4,6 @@ import com.krzywdek19.workout_service.model.dto.WorkoutSessionDto;
 import com.krzywdek19.workout_service.model.request.StartWorkoutSessionRequest;
 import com.krzywdek19.workout_service.service.WorkoutSessionService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,7 +32,7 @@ public class WorkoutSessionController {
     private final WorkoutSessionService workoutSessionService;
 
     @Operation(
-            summary = "Start a new workout session",
+            summary = "Create a workout session",
             description = "Starts a new workout session from a workout template. A user can only have one active session at a time."
     )
     @ApiResponses(value = {
@@ -45,8 +44,8 @@ public class WorkoutSessionController {
             @ApiResponse(responseCode = "404", description = "Workout template not found"),
             @ApiResponse(responseCode = "409", description = "User already has an active workout session")
     })
-    @PostMapping("/start")
-    public ResponseEntity<WorkoutSessionDto> startWorkoutSession(
+    @PostMapping
+    public ResponseEntity<WorkoutSessionDto> createWorkoutSession(
             @Valid
             @RequestBody(
                     description = "Workout session start payload",
@@ -57,6 +56,22 @@ public class WorkoutSessionController {
     ) {
         WorkoutSessionDto dto = workoutSessionService.startWorkoutSession(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    @Operation(
+            summary = "Get all workout sessions for the authenticated user",
+            description = "Retrieves a list of all workout sessions, both active and completed, for the authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully retrieved list of workout sessions",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = WorkoutSessionDto.class)))
+            )
+    })
+    @GetMapping
+    public ResponseEntity<List<WorkoutSessionDto>> getWorkoutSessions() {
+        return ResponseEntity.ok(workoutSessionService.getAllUserWorkoutSessions());
     }
 
     @Operation(
@@ -72,16 +87,8 @@ public class WorkoutSessionController {
             @ApiResponse(responseCode = "404", description = "Workout session not found")
     })
     @GetMapping("/{workoutSessionId}")
-    public ResponseEntity<WorkoutSessionDto> getWorkoutSessionById(
-            @Parameter(
-                    description = "Workout session identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID workoutSessionId
-    ) {
-        WorkoutSessionDto dto = workoutSessionService.getWorkoutSessionById(workoutSessionId);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<WorkoutSessionDto> getWorkoutSessionById(@PathVariable UUID workoutSessionId) {
+        return ResponseEntity.ok(workoutSessionService.getWorkoutSessionById(workoutSessionId));
     }
 
     @Operation(
@@ -98,8 +105,7 @@ public class WorkoutSessionController {
     })
     @GetMapping("/active")
     public ResponseEntity<WorkoutSessionDto> getActiveWorkoutSession() {
-        WorkoutSessionDto session = workoutSessionService.getActiveWorkoutSession();
-        return ResponseEntity.ok(session);
+        return ResponseEntity.ok(workoutSessionService.getActiveWorkoutSession());
     }
 
     @Operation(
@@ -114,33 +120,8 @@ public class WorkoutSessionController {
             ),
             @ApiResponse(responseCode = "404", description = "Workout session not found")
     })
-    @PutMapping("/{workoutSessionId}/finish")
-    public ResponseEntity<WorkoutSessionDto> finishWorkoutSession(
-            @Parameter(
-                    description = "Workout session identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID workoutSessionId
-    ) {
-        WorkoutSessionDto dto = workoutSessionService.finishWorkoutSession(workoutSessionId);
-        return ResponseEntity.ok(dto);
-    }
-
-    @Operation(
-            summary = "Get all workout sessions for the authenticated user",
-            description = "Retrieves a list of all workout sessions, both active and completed, for the authenticated user."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Successfully retrieved list of workout sessions",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = WorkoutSessionDto.class)))
-            )
-    })
-    @GetMapping
-    public ResponseEntity<List<WorkoutSessionDto>> getAllUserWorkoutSessions() {
-        List<WorkoutSessionDto> sessions = workoutSessionService.getAllUserWorkoutSessions();
-        return ResponseEntity.ok(sessions);
+    @PostMapping("/{workoutSessionId}/finish")
+    public ResponseEntity<WorkoutSessionDto> finishWorkoutSession(@PathVariable UUID workoutSessionId) {
+        return ResponseEntity.ok(workoutSessionService.finishWorkoutSession(workoutSessionId));
     }
 }

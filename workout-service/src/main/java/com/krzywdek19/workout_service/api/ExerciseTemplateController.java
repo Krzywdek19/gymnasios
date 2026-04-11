@@ -5,7 +5,6 @@ import com.krzywdek19.workout_service.model.request.CreateExerciseTemplateReques
 import com.krzywdek19.workout_service.model.request.UpdateExerciseTemplateRequest;
 import com.krzywdek19.workout_service.service.ExerciseTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,7 +34,7 @@ public class ExerciseTemplateController {
     private final ExerciseTemplateService exerciseTemplateService;
 
     @Operation(
-            summary = "Add an exercise template to a workout template",
+            summary = "Create an exercise template in a workout template",
             description = "Creates an exercise template and attaches it to the specified workout template."
     )
     @ApiResponses({
@@ -47,15 +46,10 @@ public class ExerciseTemplateController {
             @ApiResponse(responseCode = "400", description = "Invalid request payload"),
             @ApiResponse(responseCode = "404", description = "Workout template not found or access denied")
     })
-    @PostMapping("/workout-templates/{templateId}/exercise-templates")
-    @PreAuthorize("@access.workout(#templateId, authentication)")
-    public ResponseEntity<ExerciseTemplateDto> addExerciseTemplate(
-            @Parameter(
-                    description = "Workout template identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID templateId,
+    @PostMapping("/workout-templates/{workoutTemplateId}/exercise-templates")
+    @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
+    public ResponseEntity<ExerciseTemplateDto> createExerciseTemplate(
+            @PathVariable UUID workoutTemplateId,
             @Valid
             @RequestBody(
                     description = "Exercise template creation payload",
@@ -64,12 +58,12 @@ public class ExerciseTemplateController {
             )
             @org.springframework.web.bind.annotation.RequestBody CreateExerciseTemplateRequest request
     ) {
-        ExerciseTemplateDto createdTemplate = exerciseTemplateService.addExerciseTemplate(templateId, request);
-        return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
+        ExerciseTemplateDto createdTemplate = exerciseTemplateService.addExerciseTemplate(workoutTemplateId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTemplate);
     }
 
     @Operation(
-            summary = "Get all exercise templates for a workout template",
+            summary = "Get exercise templates for a workout template",
             description = "Returns all exercise templates associated with the specified workout template."
     )
     @ApiResponses({
@@ -80,18 +74,12 @@ public class ExerciseTemplateController {
             ),
             @ApiResponse(responseCode = "404", description = "Workout template not found or access denied")
     })
-    @GetMapping("/workout-templates/{templateId}/exercise-templates")
-    @PreAuthorize("@access.workout(#templateId, authentication)")
+    @GetMapping("/workout-templates/{workoutTemplateId}/exercise-templates")
+    @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
     public ResponseEntity<List<ExerciseTemplateDto>> getExerciseTemplatesForWorkout(
-            @Parameter(
-                    description = "Workout template identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID templateId
+            @PathVariable UUID workoutTemplateId
     ) {
-        List<ExerciseTemplateDto> templates = exerciseTemplateService.getExerciseTemplatesForWorkout(templateId);
-        return ResponseEntity.ok(templates);
+        return ResponseEntity.ok(exerciseTemplateService.getExerciseTemplatesForWorkout(workoutTemplateId));
     }
 
     @Operation(
@@ -110,11 +98,6 @@ public class ExerciseTemplateController {
     @PutMapping("/exercise-templates/{exerciseTemplateId}")
     @PreAuthorize("@access.exercise(#exerciseTemplateId, authentication)")
     public ResponseEntity<ExerciseTemplateDto> updateExerciseTemplate(
-            @Parameter(
-                    description = "Exercise template identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
             @PathVariable UUID exerciseTemplateId,
             @Valid
             @RequestBody(
@@ -138,14 +121,7 @@ public class ExerciseTemplateController {
     })
     @DeleteMapping("/exercise-templates/{exerciseTemplateId}")
     @PreAuthorize("@access.exercise(#exerciseTemplateId, authentication)")
-    public ResponseEntity<Void> deleteExerciseTemplate(
-            @Parameter(
-                    description = "Exercise template identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID exerciseTemplateId
-    ) {
+    public ResponseEntity<Void> deleteExerciseTemplate(@PathVariable UUID exerciseTemplateId) {
         exerciseTemplateService.deleteExerciseTemplate(exerciseTemplateId);
         return ResponseEntity.noContent().build();
     }

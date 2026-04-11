@@ -4,7 +4,6 @@ import com.krzywdek19.workout_service.model.dto.SetSessionDto;
 import com.krzywdek19.workout_service.model.request.UpdateSetRequest;
 import com.krzywdek19.workout_service.service.SetSessionService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,7 +31,7 @@ public class SetSessionController {
     private final SetSessionService setSessionService;
 
     @Operation(
-            summary = "Get all set sessions for an exercise session",
+            summary = "Get set sessions for an exercise session",
             description = "Retrieves all sets belonging to a specific exercise session owned by the authenticated user."
     )
     @ApiResponses(value = {
@@ -44,16 +43,8 @@ public class SetSessionController {
             @ApiResponse(responseCode = "404", description = "Exercise session not found or user does not have access")
     })
     @GetMapping("/exercise-sessions/{exerciseSessionId}/set-sessions")
-    public ResponseEntity<List<SetSessionDto>> getSetSessionsForExercise(
-            @Parameter(
-                    description = "Exercise session identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID exerciseSessionId
-    ) {
-        List<SetSessionDto> sets = setSessionService.getSetSessionsForExercise(exerciseSessionId);
-        return ResponseEntity.ok(sets);
+    public ResponseEntity<List<SetSessionDto>> getSetSessionsForExercise(@PathVariable UUID exerciseSessionId) {
+        return ResponseEntity.ok(setSessionService.getSetSessionsForExercise(exerciseSessionId));
     }
 
     @Operation(
@@ -69,16 +60,8 @@ public class SetSessionController {
             @ApiResponse(responseCode = "404", description = "Set session not found or user does not have access")
     })
     @GetMapping("/set-sessions/{setSessionId}")
-    public ResponseEntity<SetSessionDto> getSetSessionById(
-            @Parameter(
-                    description = "Set session identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID setSessionId
-    ) {
-        SetSessionDto setSession = setSessionService.getSetSessionById(setSessionId);
-        return ResponseEntity.ok(setSession);
+    public ResponseEntity<SetSessionDto> getSetSessionById(@PathVariable UUID setSessionId) {
+        return ResponseEntity.ok(setSessionService.getSetSessionById(setSessionId));
     }
 
     @Operation(
@@ -95,11 +78,6 @@ public class SetSessionController {
     })
     @PutMapping("/set-sessions/{setSessionId}")
     public ResponseEntity<SetSessionDto> updateSetSession(
-            @Parameter(
-                    description = "Set session identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
             @PathVariable UUID setSessionId,
             @Valid
             @RequestBody(
@@ -109,8 +87,7 @@ public class SetSessionController {
             )
             @org.springframework.web.bind.annotation.RequestBody UpdateSetRequest request
     ) {
-        SetSessionDto updatedSet = setSessionService.updateSetSession(setSessionId, request);
-        return ResponseEntity.ok(updatedSet);
+        return ResponseEntity.ok(setSessionService.updateSetSession(setSessionId, request));
     }
 
     @Operation(
@@ -122,14 +99,7 @@ public class SetSessionController {
             @ApiResponse(responseCode = "404", description = "Set session not found or user does not have access")
     })
     @DeleteMapping("/set-sessions/{setSessionId}")
-    public ResponseEntity<Void> deleteSetSession(
-            @Parameter(
-                    description = "Set session identifier",
-                    required = true,
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            )
-            @PathVariable UUID setSessionId
-    ) {
+    public ResponseEntity<Void> deleteSetSession(@PathVariable UUID setSessionId) {
         setSessionService.deleteSetSession(setSessionId);
         return ResponseEntity.noContent().build();
     }

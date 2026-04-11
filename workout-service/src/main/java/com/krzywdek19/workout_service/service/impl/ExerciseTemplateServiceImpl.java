@@ -36,6 +36,7 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
                 .notes(request.notes())
                 .orderIndex(request.orderIndex())
                 .setsCount(request.setsCount())
+                .reps(request.reps())
                 .build();
         return exerciseTemplateMapper.toDto(exerciseTemplateRepository.save(exerciseTemplate));
     }
@@ -68,6 +69,7 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
         exerciseTemplate.setOrderIndex(request.orderIndex());
         exerciseTemplate.setSetsCount(request.setsCount());
         exerciseTemplate.setNotes(request.notes());
+        exerciseTemplate.setReps(request.reps());
         return exerciseTemplateMapper.toDto(exerciseTemplateRepository.save(exerciseTemplate));
     }
 

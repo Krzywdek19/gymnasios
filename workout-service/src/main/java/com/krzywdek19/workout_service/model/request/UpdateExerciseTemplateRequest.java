@@ -32,7 +32,11 @@ public record UpdateExerciseTemplateRequest(
         @NotNull
         @Min(0)
         Integer orderIndex,
-
+        @Schema(
+                description = "Number of reps planned for the exercise.",
+                example = "8-12"
+        )
+        String reps,
         @Schema(
                 description = "Updated number of planned sets.",
                 example = "3",

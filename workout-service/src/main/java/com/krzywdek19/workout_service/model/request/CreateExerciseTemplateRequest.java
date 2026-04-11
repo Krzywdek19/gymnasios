@@ -33,6 +33,12 @@ public record CreateExerciseTemplateRequest(
         Integer setsCount,
 
         @Schema(
+                description = "Number of reps planned for the exercise.",
+                example = "8-12"
+        )
+        String reps,
+
+        @Schema(
                 description = "Order of the exercise inside the workout template.",
                 example = "0",
                 minimum = "0"

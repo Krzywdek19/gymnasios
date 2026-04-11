@@ -32,6 +32,11 @@ public record ExerciseTemplateDto(
                 example = "3"
         )
         int setsCount,
+        @Schema(
+                description = "Planned number of reps",
+                example = "8-12"
+        )
+        String reps,
 
         @Schema(
                 description = "Order of the exercise inside the workout template.",
