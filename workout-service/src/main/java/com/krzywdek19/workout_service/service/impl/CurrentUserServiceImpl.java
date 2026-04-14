@@ -1,22 +1,25 @@
 package com.krzywdek19.workout_service.service.impl;
 
 import com.krzywdek19.workout_service.service.CurrentUserService;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class CurrentUserServiceImpl implements CurrentUserService {
-    private static final String USER_EMAIL_HEADER = "X-User-Email";
 
-    private final HttpServletRequest request;
-
+    @Override
     public String getCurrentUserEmail() {
-        String userEmail = request.getHeader(USER_EMAIL_HEADER);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("No authenticated user in security context");
+        }
+
+        String userEmail = authentication.getName();
 
         if (userEmail == null || userEmail.isBlank()) {
-            throw new IllegalStateException("Missing X-User-Email header");
+            throw new IllegalStateException("Authenticated user email is missing");
         }
 
         return userEmail;

@@ -49,15 +49,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         log.info("GW auth header present: {}", hasAuth);
 
         if (!hasAuth && devAuthProperties.isEnabled()) {
-            String email = devAuthProperties.getEmail();
-
-            var mutatedRequest = request.mutate()
-                    .header("X-User-Email", email)
-                    .build();
-
-            log.info("GW dev auth enabled, forwarding request with X-User-Email={}", email);
-
-            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            log.warn("GW dev auth is enabled, but workout-service now requires real Bearer JWT");
         }
 
         if (!hasAuth) {
@@ -79,13 +71,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 return exchange.getResponse().setComplete();
             }
 
-            var mutatedRequest = request.mutate()
-                    .header("X-User-Email", claims.getSubject())
-                    .build();
-
-            log.info("GW forwarding request with X-User-Email={}", claims.getSubject());
-
-            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            log.info("GW token accepted for subject={}", claims.getSubject());
+            return chain.filter(exchange);
 
         } catch (Exception e) {
             log.error("GW JWT parse failed for path {}: {}", path, e.getMessage(), e);
