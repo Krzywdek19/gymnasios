@@ -2,6 +2,7 @@ package com.krzywdek19.workout_service.api;
 
 import com.krzywdek19.workout_service.model.dto.WorkoutTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateWorkoutTemplateRequest;
+import com.krzywdek19.workout_service.model.request.UpdateWorkoutTemplateRequest;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -95,6 +96,17 @@ public class WorkoutTemplateController {
     @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
     public ResponseEntity<WorkoutTemplateDto> getWorkoutTemplateById(@PathVariable UUID workoutTemplateId) {
         return ResponseEntity.ok(workoutTemplateService.getWorkoutTemplateById(workoutTemplateId));
+    }
+
+    @PutMapping("/workout-templates/{workoutTemplateId}")
+    @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
+    public ResponseEntity<WorkoutTemplateDto> updateWorkoutTemplate(
+            @PathVariable UUID workoutTemplateId,
+            @Valid @RequestBody UpdateWorkoutTemplateRequest request
+    ) {
+        return ResponseEntity.ok(
+                workoutTemplateService.updateWorkoutTemplate(workoutTemplateId, request)
+        );
     }
 
     @Operation(

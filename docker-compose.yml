@@ -92,7 +92,7 @@ services:
       - user-service
       - workout-service
     environment:
-      SPRING_PROFILES_ACTIVE: docker, dev
+      SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
