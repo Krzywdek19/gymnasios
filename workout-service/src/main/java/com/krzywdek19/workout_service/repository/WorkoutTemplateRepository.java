@@ -14,8 +14,10 @@ public interface WorkoutTemplateRepository extends JpaRepository<WorkoutTemplate
     // N+1 problem workaround - fetch workout templates for a training plan and user in a single query
     @Query("SELECT wt FROM WorkoutTemplate wt JOIN wt.trainingPlan tp WHERE tp.id = :planId AND tp.userEmail = :userEmail")
     List<WorkoutTemplate> findAllByTrainingPlanIdAndUserEmail(@Param("planId") UUID planId, @Param("userEmail") String userEmail);
-
     @Query("SELECT wt FROM WorkoutTemplate wt JOIN FETCH wt.trainingPlan WHERE wt.id = :templateId")
     Optional<WorkoutTemplate> findByIdWithTrainingPlan(@Param("templateId") UUID templateId);
+    List<WorkoutTemplate> findByTrainingPlanIdOrderByOrderIndexAsc(UUID trainingPlanId);
+    List<WorkoutTemplate> findByTrainingPlanIdAndOrderIndexBetween(UUID trainingPlanId, Integer start, Integer end);
+    long countByTrainingPlanId(UUID trainingPlanId);
 }
 

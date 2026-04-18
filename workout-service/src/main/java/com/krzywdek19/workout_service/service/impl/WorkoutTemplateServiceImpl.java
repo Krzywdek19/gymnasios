@@ -11,9 +11,11 @@ import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.WorkoutTemplateService;
 import com.krzywdek19.workout_service.utils.WorkoutTemplateMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,9 +63,54 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
         String userEmail = currentUserService.getCurrentUserEmail();
         WorkoutTemplate workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
 
-        workoutTemplate.setName(request.name());
+        updateNameIfChanged(workoutTemplate, request.name());
+        updateOrderIfChanged(workoutTemplate, request.order());
 
         return workoutTemplateMapper.toDto(workoutTemplateRepository.save(workoutTemplate));
+    }
+
+    private void updateNameIfChanged(WorkoutTemplate workoutTemplate, String newName) {
+        if (!newName.equals(workoutTemplate.getName())) {
+            workoutTemplate.setName(newName);
+        }
+    }
+
+    private void updateOrderIfChanged(WorkoutTemplate workoutTemplate, Integer newOrder) {
+        Integer oldOrder = workoutTemplate.getOrderIndex();
+
+        if (newOrder.equals(oldOrder)) {
+            return;
+        }
+
+        UUID planId = workoutTemplate.getTrainingPlan().getId();
+
+        validateOrderInRange(planId, newOrder);
+        shiftOtherWorkouts(planId, oldOrder, newOrder);
+
+        workoutTemplate.setOrderIndex(newOrder);
+    }
+
+    private void shiftOtherWorkouts(UUID planId, Integer oldOrder, Integer newOrder) {
+        if (newOrder < oldOrder) {
+            workoutTemplateRepository
+                    .findByTrainingPlanIdAndOrderIndexBetween(planId, newOrder, oldOrder - 1)
+                    .forEach(workout -> workout.setOrderIndex(workout.getOrderIndex() + 1));
+        } else {
+            workoutTemplateRepository
+                    .findByTrainingPlanIdAndOrderIndexBetween(planId, oldOrder + 1, newOrder)
+                    .forEach(workout -> workout.setOrderIndex(workout.getOrderIndex() - 1));
+        }
+    }
+
+    private void validateOrderInRange(UUID planId, Integer newOrder) {
+        long workoutsCount = workoutTemplateRepository.countByTrainingPlanId(planId);
+
+        if (newOrder < 1 || newOrder > workoutsCount) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Workout order must be between 1 and " + workoutsCount
+            );
+        }
     }
 
     @Override
