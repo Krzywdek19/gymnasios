@@ -102,7 +102,7 @@ public class WorkoutTemplateController {
     @PreAuthorize("@access.workout(#workoutTemplateId, authentication)")
     public ResponseEntity<WorkoutTemplateDto> updateWorkoutTemplate(
             @PathVariable UUID workoutTemplateId,
-            @Valid @RequestBody UpdateWorkoutTemplateRequest request
+            @Valid @org.springframework.web.bind.annotation.RequestBody UpdateWorkoutTemplateRequest request
     ) {
         return ResponseEntity.ok(
                 workoutTemplateService.updateWorkoutTemplate(workoutTemplateId, request)
