@@ -2,6 +2,7 @@ package com.krzywdek19.user_service.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @Schema(
@@ -17,13 +18,17 @@ public record ResetPasswordRequest(
         String token,
 
         @Schema(
-                description = "New password that will replace the current one.",
+                description = "New password. It must contain at least 8 characters, one uppercase letter, one digit and one special character.",
                 example = "NewStrongPassword123!",
                 minLength = 8,
                 maxLength = 128,
                 accessMode = Schema.AccessMode.WRITE_ONLY
         )
         @Size(min = 8, max = 128)
+        @Pattern(
+                regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,128}$",
+                message = "password must contain at least 8 characters, one uppercase letter, one digit and one special character"
+        )
         @NotBlank
         String newPassword
 ) {
