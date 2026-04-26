@@ -5,6 +5,7 @@ import com.krzywdek19.user_service.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ public class JwtServiceImpl implements JwtService {
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .setSubject(user.getUsername())
-                .signWith(getSigningKey())
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 

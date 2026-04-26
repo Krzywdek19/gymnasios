@@ -3,33 +3,63 @@ version: "3.9"
 services:
   redis:
     image: redis:7
-    container_name: gymnasios-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  postgres-user:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${USER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    volumes:
+      - postgres_user_data:/var/lib/postgresql/data
+
+  postgres-workout:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${WORKOUT_DB_NAME}
+      POSTGRES_USER: ${WORKOUT_DB_USERNAME}
+      POSTGRES_PASSWORD: ${WORKOUT_DB_PASSWORD}
+    volumes:
+      - postgres_workout_data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: gymnasios-mailhog
     ports:
-      - "6379:6379"
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
+
+  frontend-static:
+    image: nginx:alpine
+    container_name: gymnasios-frontend-static
+    ports:
+      - "8090:80"
+    volumes:
+      - ./public-pages:/usr/share/nginx/html:ro
     restart: unless-stopped
 
   config-server:
     build:
       context: .
       dockerfile: config-server/Dockerfile
-    container_name: gymnasios-config-server
+    restart: unless-stopped
     ports:
       - "8888:8888"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8888
-    healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:8888/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-    restart: unless-stopped
 
   discovery-server:
     build:
       context: .
       dockerfile: discovery-server/Dockerfile
-    container_name: gymnasios-discovery-server
+    restart: unless-stopped
     ports:
       - "8761:8761"
     depends_on:
@@ -38,51 +68,74 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8761
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
-    restart: unless-stopped
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
 
   user-service:
     build:
       context: .
       dockerfile: user-service/Dockerfile
-    container_name: gymnasios-user-service
-    ports:
-      - "8081:8081"
+    restart: unless-stopped
     depends_on:
       - redis
+      - postgres-user
       - config-server
       - discovery-server
+      - mailhog
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8081
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-    restart: unless-stopped
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
+
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+
+      USER_DB_URL: jdbc:postgresql://postgres-user:5432/${USER_DB_NAME}
+      USER_DB_DRIVER: org.postgresql.Driver
+      USER_DB_USERNAME: ${USER_DB_USERNAME}
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD}
+      USER_JPA_DDL_AUTO: update
+      USER_SHOW_SQL: false
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
 
   workout-service:
     build:
       context: .
       dockerfile: workout-service/Dockerfile
-    container_name: gymnasios-workout-service
+    restart: unless-stopped
     ports:
       - "8082:8082"
     depends_on:
+      - postgres-workout
       - config-server
       - discovery-server
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8082
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
-    restart: unless-stopped
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      WORKOUT_DB_URL: jdbc:postgresql://postgres-workout:5432/${WORKOUT_DB_NAME}
+      WORKOUT_DB_DRIVER: org.postgresql.Driver
+      WORKOUT_DB_USERNAME: ${WORKOUT_DB_USERNAME}
+      WORKOUT_DB_PASSWORD: ${WORKOUT_DB_PASSWORD}
+      WORKOUT_JPA_DDL_AUTO: update
+      WORKOUT_SHOW_SQL: false
 
   api-gateway:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
-    container_name: gymnasios-api-gateway
+    restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
@@ -95,7 +148,14 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-server:8761/eureka
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-    restart: unless-stopped
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8761/eureka
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+volumes:
+  redis_data:
+  postgres_user_data:
+  postgres_workout_data:

@@ -1,6 +1,7 @@
 package com.krzywdek19.api_gateway.security;
 
 import com.krzywdek19.api_gateway.config.DevAuthProperties;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -34,19 +35,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         log.info("GW request: method={}, path={}", request.getMethod(), path);
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod().name())) {
-            log.info("GW skipping OPTIONS request");
             return chain.filter(exchange);
         }
 
         if (publicPaths.isPublic(path)) {
-            log.info("GW public path: {}", path);
             return chain.filter(exchange);
         }
 
         var authHeader = request.getHeaders().getFirst("Authorization");
         boolean hasAuth = authHeader != null && authHeader.startsWith("Bearer ");
-
-        log.info("GW auth header present: {}", hasAuth);
 
         if (!hasAuth && devAuthProperties.isEnabled()) {
             log.warn("GW dev auth is enabled, but workout-service now requires real Bearer JWT");
@@ -60,25 +57,31 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         var token = authHeader.substring(7);
 
+        final Claims claims;
         try {
-            var claims = jwtUtil.parseToken(token);
+            claims = jwtUtil.parseToken(token);
             log.info("GW token parsed successfully, subject={}", claims.getSubject());
-
-            String jti = claims.getId();
-            if (jti != null && Boolean.TRUE.equals(redisTemplate.hasKey(key(jti)))) {
-                log.warn("GW token is blacklisted, jti={}", jti);
-                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                return exchange.getResponse().setComplete();
-            }
-
-            log.info("GW token accepted for subject={}", claims.getSubject());
-            return chain.filter(exchange);
-
         } catch (Exception e) {
             log.error("GW JWT parse failed for path {}: {}", path, e.getMessage(), e);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
+
+        String jti = claims.getId();
+        if (jti != null) {
+            try {
+                if (redisTemplate.hasKey(key(jti))) {
+                    log.warn("GW token is blacklisted, jti={}", jti);
+                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                    return exchange.getResponse().setComplete();
+                }
+            } catch (Exception e) {
+                log.error("GW Redis blacklist check failed for jti {}: {}", jti, e.getMessage(), e);
+            }
+        }
+
+        log.info("GW token accepted for subject={}", claims.getSubject());
+        return chain.filter(exchange);
     }
 
     @Override

@@ -57,6 +57,7 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
     }
 
     @Override
+    @Transactional
     public TrainingPlanDto updatePlan(UUID planId, UpdateTrainingPlanRequest request) {
         String userEmail = currentUserService.getCurrentUserEmail();
         var trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);

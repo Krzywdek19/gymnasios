@@ -1,6 +1,5 @@
 spring:
   application:
     name: discovery-server
-  config:
-    import: optional:configserver:http://gymnasios-config-server:8888
+
 

@@ -2,6 +2,7 @@ package com.krzywdek19.workout_service.api;
 
 import com.krzywdek19.workout_service.model.dto.TrainingPlanDto;
 import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
+import com.krzywdek19.workout_service.model.request.UpdateTrainingPlanRequest;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -90,6 +91,34 @@ public class TrainingPlanController {
     @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<TrainingPlanDto> getTrainingPlanById(@PathVariable UUID planId) {
         return ResponseEntity.ok(trainingPlanService.getPlanById(planId));
+    }
+
+    @Operation(
+            summary = "Update a training plan",
+            description = "Updates a training plan after ownership verification."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Training plan updated successfully",
+                    content = @Content(schema = @Schema(implementation = TrainingPlanDto.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload"),
+            @ApiResponse(responseCode = "404", description = "Training plan not found or access denied")
+    })
+    @PutMapping("/{planId}")
+    @PreAuthorize("@access.plan(#planId, authentication)")
+    public ResponseEntity<TrainingPlanDto> updateTrainingPlan(
+            @PathVariable UUID planId,
+            @Valid
+            @RequestBody(
+                    description = "Training plan update payload",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = UpdateTrainingPlanRequest.class))
+            )
+            @org.springframework.web.bind.annotation.RequestBody UpdateTrainingPlanRequest request
+    ) {
+        return ResponseEntity.ok(trainingPlanService.updatePlan(planId, request));
     }
 
     @Operation(

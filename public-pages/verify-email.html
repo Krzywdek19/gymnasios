@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Verification | Gymnasios</title>
+  <style>
+    :root {
+      --text: #eef2f7;
+      --muted: #aab4c3;
+      --accent: #f4c430;
+      --success: #42c777;
+      --error: #ff6b6b;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(244,196,48,0.12), transparent 30%),
+        linear-gradient(180deg, #0f1115 0%, #11161d 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(23, 27, 34, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(244,196,48,0.14);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.15;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      font-size: 15px;
+      line-height: 1.5;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .status.success {
+      color: var(--success);
+      border-color: rgba(66, 199, 119, 0.28);
+      background: rgba(66, 199, 119, 0.08);
+    }
+
+    .status.error {
+      color: var(--error);
+      border-color: rgba(255, 107, 107, 0.28);
+      background: rgba(255, 107, 107, 0.08);
+    }
+
+    .status.loading {
+      color: var(--text);
+    }
+
+    .actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      appearance: none;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .button.secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="badge">Gymnasios</div>
+    <h1>Verifying your email address</h1>
+    <p>Please wait while we confirm your account.</p>
+
+    <div id="status" class="status loading">Verifying...</div>
+
+    <div class="actions">
+      <button id="retryButton" class="button secondary" style="display:none;">Try again</button>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE_URL = "http://localhost:8080";
+
+    const statusEl = document.getElementById("status");
+    const retryButton = document.getElementById("retryButton");
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    async function verifyEmail() {
+      if (!token) {
+        statusEl.className = "status error";
+        statusEl.textContent = "Verification token is missing.";
+        retryButton.style.display = "none";
+        return;
+      }
+
+      statusEl.className = "status loading";
+      statusEl.textContent = "Verifying...";
+      retryButton.style.display = "none";
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/verify-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ token })
+        });
+
+        if (response.ok) {
+          statusEl.className = "status success";
+          statusEl.textContent = "Your email address has been verified. You can now return to the app and sign in.";
+          return;
+        }
+
+        let errorMessage = "We could not verify your email address.";
+
+        try {
+          const errorBody = await response.json();
+          if (errorBody?.message) {
+            errorMessage = errorBody.message;
+          }
+        } catch (_) {}
+
+        statusEl.className = "status error";
+        statusEl.textContent = errorMessage;
+        retryButton.style.display = "inline-flex";
+      } catch (_) {
+        statusEl.className = "status error";
+        statusEl.textContent = "Could not connect to the server. Please try again.";
+        retryButton.style.display = "inline-flex";
+      }
+    }
+
+    retryButton.addEventListener("click", verifyEmail);
+    verifyEmail();
+  </script>
+</body>
+</html>
