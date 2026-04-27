@@ -33,10 +33,13 @@ public class ExerciseSession {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("orderIndex ASC")
     private List<SetSession> sets = new ArrayList<>();
     @Column(nullable = false)
     private int orderIndex;
     @Column(nullable = false)
     private int setsCount;
+    private String plannedReps;
+    private String notes;
 }
 

@@ -9,8 +9,16 @@ import java.util.UUID;
 
 public interface TrainingPlanService {
     TrainingPlanDto createPlan(CreateTrainingPlanRequest request);
+
     List<TrainingPlanDto> getPlansForCurrentUser();
+
     TrainingPlanDto getPlanById(UUID planId);
+
+    TrainingPlanDto getActivePlan();
+
+    TrainingPlanDto activatePlan(UUID planId);
+
     TrainingPlanDto updatePlan(UUID planId, UpdateTrainingPlanRequest request);
+
     void deletePlan(UUID planId);
 }

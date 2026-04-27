@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(
         name = "Training Plans",
-        description = "Endpoints for creating, listing, retrieving, and deleting training plans."
+        description = "Endpoints for creating, listing, retrieving, activating, updating, and deleting training plans."
 )
 public class TrainingPlanController {
 
@@ -35,7 +34,11 @@ public class TrainingPlanController {
 
     @Operation(
             summary = "Create a training plan",
-            description = "Creates a new training plan for the current user."
+            description = """
+                    Creates a new training plan for the current user.
+                    If the user does not have any active training plan yet, the created plan becomes active automatically.
+                    Otherwise, it is created as inactive.
+                    """
     )
     @ApiResponses({
             @ApiResponse(
@@ -43,20 +46,39 @@ public class TrainingPlanController {
                     description = "Training plan created successfully",
                     content = @Content(schema = @Schema(implementation = TrainingPlanDto.class))
             ),
-            @ApiResponse(responseCode = "400", description = "Invalid request payload")
+            @ApiResponse(responseCode = "400", description = "Invalid request payload"),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated")
     })
     @PostMapping
     public ResponseEntity<TrainingPlanDto> createTrainingPlan(
             @Valid
-            @RequestBody(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Training plan creation payload",
                     required = true,
                     content = @Content(schema = @Schema(implementation = CreateTrainingPlanRequest.class))
             )
-            @org.springframework.web.bind.annotation.RequestBody CreateTrainingPlanRequest request
+            @RequestBody CreateTrainingPlanRequest request
     ) {
         TrainingPlanDto createdPlan = trainingPlanService.createPlan(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlan);
+    }
+
+    @Operation(
+            summary = "Get active training plan",
+            description = "Returns the currently active training plan for the authenticated user."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Active training plan retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = TrainingPlanDto.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Active training plan not found")
+    })
+    @GetMapping("/active")
+    public ResponseEntity<TrainingPlanDto> getActiveTrainingPlan() {
+        return ResponseEntity.ok(trainingPlanService.getActivePlan());
     }
 
     @Operation(
@@ -68,7 +90,8 @@ public class TrainingPlanController {
                     responseCode = "200",
                     description = "Training plans retrieved successfully",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = TrainingPlanDto.class)))
-            )
+            ),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated")
     })
     @GetMapping
     public ResponseEntity<List<TrainingPlanDto>> getTrainingPlans() {
@@ -85,12 +108,37 @@ public class TrainingPlanController {
                     description = "Training plan retrieved successfully",
                     content = @Content(schema = @Schema(implementation = TrainingPlanDto.class))
             ),
-            @ApiResponse(responseCode = "404", description = "Training plan not found or access denied")
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "403", description = "User has no access to this training plan"),
+            @ApiResponse(responseCode = "404", description = "Training plan not found")
     })
     @GetMapping("/{planId}")
     @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<TrainingPlanDto> getTrainingPlanById(@PathVariable UUID planId) {
         return ResponseEntity.ok(trainingPlanService.getPlanById(planId));
+    }
+
+    @Operation(
+            summary = "Activate a training plan",
+            description = """
+                    Marks the selected training plan as active for the authenticated user.
+                    All previously active plans belonging to this user are changed to inactive.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Training plan activated successfully",
+                    content = @Content(schema = @Schema(implementation = TrainingPlanDto.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "403", description = "User has no access to this training plan"),
+            @ApiResponse(responseCode = "404", description = "Training plan not found")
+    })
+    @PutMapping("/{planId}/activate")
+    @PreAuthorize("@access.plan(#planId, authentication)")
+    public ResponseEntity<TrainingPlanDto> activateTrainingPlan(@PathVariable UUID planId) {
+        return ResponseEntity.ok(trainingPlanService.activatePlan(planId));
     }
 
     @Operation(
@@ -104,19 +152,21 @@ public class TrainingPlanController {
                     content = @Content(schema = @Schema(implementation = TrainingPlanDto.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request payload"),
-            @ApiResponse(responseCode = "404", description = "Training plan not found or access denied")
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "403", description = "User has no access to this training plan"),
+            @ApiResponse(responseCode = "404", description = "Training plan not found")
     })
     @PutMapping("/{planId}")
     @PreAuthorize("@access.plan(#planId, authentication)")
     public ResponseEntity<TrainingPlanDto> updateTrainingPlan(
             @PathVariable UUID planId,
             @Valid
-            @RequestBody(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Training plan update payload",
                     required = true,
                     content = @Content(schema = @Schema(implementation = UpdateTrainingPlanRequest.class))
             )
-            @org.springframework.web.bind.annotation.RequestBody UpdateTrainingPlanRequest request
+            @RequestBody UpdateTrainingPlanRequest request
     ) {
         return ResponseEntity.ok(trainingPlanService.updatePlan(planId, request));
     }
@@ -127,7 +177,9 @@ public class TrainingPlanController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Training plan deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Training plan not found or access denied")
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "403", description = "User has no access to this training plan"),
+            @ApiResponse(responseCode = "404", description = "Training plan not found")
     })
     @DeleteMapping("/{planId}")
     @PreAuthorize("@access.plan(#planId, authentication)")

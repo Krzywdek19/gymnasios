@@ -38,5 +38,6 @@ public class WorkoutSession {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("orderIndex ASC")
     private List<ExerciseSession> exercises = new ArrayList<>();
 }

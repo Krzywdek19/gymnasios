@@ -91,6 +91,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ActiveWorkoutSessionException.class)
+    public ResponseEntity<ApiError> handleActiveWorkoutSession(ActiveWorkoutSessionException ex) {
+        return build(
+                HttpStatus.CONFLICT,
+                "ACTIVE_WORKOUT_SESSION",
+                ex.getMessage(),
+                null
+        );
+    }
+
     private ApiErrorDetail toDetail(FieldError fieldError) {
         return new ApiErrorDetail(
                 fieldError.getField(),

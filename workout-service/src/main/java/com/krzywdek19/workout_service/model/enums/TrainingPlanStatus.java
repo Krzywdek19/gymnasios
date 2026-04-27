@@ -8,8 +8,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 )
 public enum TrainingPlanStatus {
 
-    @Schema(description = "The training plan is active and available for normal use.")
+    @Schema(description = "The training plan is selected as the current active plan.")
     ACTIVE,
+
+    @Schema(description = "The training plan exists, but is not currently selected as active.")
+    INACTIVE,
 
     @Schema(description = "The training plan is archived and no longer actively used.")
     ARCHIVED

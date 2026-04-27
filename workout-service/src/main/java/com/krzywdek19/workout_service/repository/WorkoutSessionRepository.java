@@ -8,11 +8,21 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 @Repository
 public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, UUID> {
-    Optional<WorkoutSession> findByUserEmailAndFinishedAtIsNull(String userEmail);
-    Optional<WorkoutSession> findByUserEmailAndStatus(String userEmail, WorkoutSessionStatus status);
-    boolean existsByUserEmailAndStatusIsNot(String userEmail, WorkoutSessionStatus status);
-    List<WorkoutSession> findAllByUserEmailOrderByStartedAtDesc(String userEmail);
-}
 
+    Optional<WorkoutSession> findByUserEmailAndFinishedAtIsNull(String userEmail);
+
+    Optional<WorkoutSession> findByUserEmailAndStatus(String userEmail, WorkoutSessionStatus status);
+
+    boolean existsByUserEmailAndStatusIsNot(String userEmail, WorkoutSessionStatus status);
+
+    List<WorkoutSession> findAllByUserEmailOrderByStartedAtDesc(String userEmail);
+
+    Optional<WorkoutSession> findFirstByUserEmailAndStatusAndWorkoutTemplate_TrainingPlan_IdOrderByFinishedAtDesc(
+            String userEmail,
+            WorkoutSessionStatus status,
+            UUID trainingPlanId
+    );
+}
