@@ -23,7 +23,7 @@ public class WorkoutSession {
     @GeneratedValue
     private UUID id;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "workout_template_id", nullable = false)
+    @JoinColumn(name = "workout_template_id", nullable = true)
     private WorkoutTemplate workoutTemplate;
     @Column(nullable = false)
     private String userEmail;

@@ -5,6 +5,8 @@ import com.krzywdek19.workout_service.model.WorkoutTemplate;
 import com.krzywdek19.workout_service.model.dto.WorkoutTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateWorkoutTemplateRequest;
 import com.krzywdek19.workout_service.model.request.UpdateWorkoutTemplateRequest;
+import com.krzywdek19.workout_service.repository.ExerciseSessionRepository;
+import com.krzywdek19.workout_service.repository.WorkoutSessionRepository;
 import com.krzywdek19.workout_service.repository.WorkoutTemplateRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
 import com.krzywdek19.workout_service.service.CurrentUserService;
@@ -27,6 +29,8 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
     private final WorkoutTemplateMapper workoutTemplateMapper;
     private final AuthorizationService authorizationService;
     private final CurrentUserService currentUserService;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final ExerciseSessionRepository exerciseSessionRepository;
 
     @Override
     @Transactional
@@ -115,9 +119,17 @@ public class WorkoutTemplateServiceImpl implements WorkoutTemplateService {
 
     @Override
     @Transactional
-    public void deleteWorkoutTemplate(UUID templateId) {
+    public void deleteWorkoutTemplate(UUID workoutTemplateId) {
         String userEmail = currentUserService.getCurrentUserEmail();
-        var workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(templateId, userEmail);
+
+        WorkoutTemplate workoutTemplate = authorizationService.verifyAndGetWorkoutTemplate(
+                workoutTemplateId,
+                userEmail
+        );
+
+        exerciseSessionRepository.detachExerciseTemplateReferencesByWorkoutTemplateId(workoutTemplateId);
+        workoutSessionRepository.detachWorkoutTemplateReferencesByWorkoutTemplateId(workoutTemplateId);
+
         workoutTemplateRepository.delete(workoutTemplate);
     }
 }

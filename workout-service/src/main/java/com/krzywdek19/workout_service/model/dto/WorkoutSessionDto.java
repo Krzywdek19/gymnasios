@@ -24,6 +24,12 @@ public record WorkoutSessionDto(
         UUID workoutTemplateId,
 
         @Schema(
+                description = "Name of the workout template used to create the session.",
+                example = "Push"
+        )
+        String workoutTemplateName,
+
+        @Schema(
                 description = "Current workout session status.",
                 example = "IN_PROGRESS"
         )

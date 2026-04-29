@@ -24,7 +24,7 @@ public class ExerciseSession {
     @JoinColumn(name = "workout_session_id", nullable = false)
     private WorkoutSession workoutSession;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "exercise_template_id", nullable = false)
+    @JoinColumn(name = "exercise_template_id", nullable = true)
     private ExerciseTemplate exerciseTemplate;
     @Column(nullable = false)
     private String name;

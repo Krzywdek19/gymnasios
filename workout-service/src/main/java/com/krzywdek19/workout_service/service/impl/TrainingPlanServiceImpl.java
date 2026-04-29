@@ -6,7 +6,9 @@ import com.krzywdek19.workout_service.model.dto.TrainingPlanDto;
 import com.krzywdek19.workout_service.model.enums.TrainingPlanStatus;
 import com.krzywdek19.workout_service.model.request.CreateTrainingPlanRequest;
 import com.krzywdek19.workout_service.model.request.UpdateTrainingPlanRequest;
+import com.krzywdek19.workout_service.repository.ExerciseSessionRepository;
 import com.krzywdek19.workout_service.repository.TrainingPlanRepository;
+import com.krzywdek19.workout_service.repository.WorkoutSessionRepository;
 import com.krzywdek19.workout_service.service.AuthorizationService;
 import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.TrainingPlanService;
@@ -21,11 +23,12 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TrainingPlanServiceImpl implements TrainingPlanService {
-
     private final TrainingPlanRepository trainingPlanRepository;
     private final TrainingPlanMapper trainingPlanMapper;
     private final AuthorizationService authorizationService;
     private final CurrentUserService currentUserService;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final ExerciseSessionRepository exerciseSessionRepository;
 
     @Override
     @Transactional
@@ -112,6 +115,9 @@ public class TrainingPlanServiceImpl implements TrainingPlanService {
         String userEmail = currentUserService.getCurrentUserEmail();
 
         TrainingPlan trainingPlan = authorizationService.verifyAndGetPlan(planId, userEmail);
+
+        exerciseSessionRepository.detachExerciseTemplateReferencesByTrainingPlanId(planId);
+        workoutSessionRepository.detachWorkoutTemplateReferencesByTrainingPlanId(planId);
 
         trainingPlanRepository.delete(trainingPlan);
     }

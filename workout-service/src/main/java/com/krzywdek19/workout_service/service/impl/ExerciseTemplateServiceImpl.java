@@ -4,6 +4,7 @@ import com.krzywdek19.workout_service.model.ExerciseTemplate;
 import com.krzywdek19.workout_service.model.dto.ExerciseTemplateDto;
 import com.krzywdek19.workout_service.model.request.CreateExerciseTemplateRequest;
 import com.krzywdek19.workout_service.model.request.UpdateExerciseTemplateRequest;
+import com.krzywdek19.workout_service.repository.ExerciseSessionRepository;
 import com.krzywdek19.workout_service.repository.ExerciseTemplateRepository;
 import com.krzywdek19.workout_service.service.CurrentUserService;
 import com.krzywdek19.workout_service.service.ExerciseTemplateService;
@@ -23,7 +24,7 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     private final ExerciseTemplateMapper exerciseTemplateMapper;
     private final AuthorizationServiceImpl authorizationService;
     private final CurrentUserService currentUserService;
-
+    private final ExerciseSessionRepository exerciseSessionRepository;
 
     @Override
     @Transactional
@@ -77,7 +78,14 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
     @Transactional
     public void deleteExerciseTemplate(UUID exerciseTemplateId) {
         String userEmail = currentUserService.getCurrentUserEmail();
-        var exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(exerciseTemplateId, userEmail);
+
+        ExerciseTemplate exerciseTemplate = authorizationService.verifyAndGetExerciseTemplate(
+                exerciseTemplateId,
+                userEmail
+        );
+
+        exerciseSessionRepository.detachExerciseTemplateReferencesByExerciseTemplateId(exerciseTemplateId);
+
         exerciseTemplateRepository.delete(exerciseTemplate);
     }
 }

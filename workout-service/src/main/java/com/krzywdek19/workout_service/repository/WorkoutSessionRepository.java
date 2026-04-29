@@ -3,6 +3,8 @@ package com.krzywdek19.workout_service.repository;
 import com.krzywdek19.workout_service.model.WorkoutSession;
 import com.krzywdek19.workout_service.model.enums.WorkoutSessionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,4 +27,30 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             WorkoutSessionStatus status,
             UUID trainingPlanId
     );
+
+    @Modifying
+    @Query(
+            value = """
+                UPDATE workout_sessions
+                SET workout_template_id = NULL
+                WHERE workout_template_id IN (
+                    SELECT id
+                    FROM workout_templates
+                    WHERE training_plan_id = :trainingPlanId
+                )
+                """,
+            nativeQuery = true
+    )
+    void detachWorkoutTemplateReferencesByTrainingPlanId(UUID trainingPlanId);
+
+    @Modifying
+    @Query(
+            value = """
+                UPDATE workout_sessions
+                SET workout_template_id = NULL
+                WHERE workout_template_id = :workoutTemplateId
+                """,
+            nativeQuery = true
+    )
+    void detachWorkoutTemplateReferencesByWorkoutTemplateId(UUID workoutTemplateId);
 }
