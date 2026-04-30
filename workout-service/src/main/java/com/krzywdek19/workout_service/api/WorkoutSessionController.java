@@ -179,4 +179,50 @@ public class WorkoutSessionController {
     public ResponseEntity<WorkoutSessionDto> finishWorkoutSession(@PathVariable UUID workoutSessionId) {
         return ResponseEntity.ok(workoutSessionService.finishWorkoutSession(workoutSessionId));
     }
+
+    @Operation(
+            summary = "Delete workout history",
+            description = "Deletes all finished workout sessions for the authenticated user. Active workout session is not deleted."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Workout history deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated")
+    })
+    @DeleteMapping("/history")
+    public ResponseEntity<Void> deleteFinishedWorkoutSessions() {
+        workoutSessionService.deleteFinishedWorkoutSessions();
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Delete workout history for selected workout template",
+            description = "Deletes all finished workout sessions created from the selected workout template. Active workout session is not deleted."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Workout template history deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Workout template not found")
+    })
+    @DeleteMapping("/history/workout-templates/{workoutTemplateId}")
+    public ResponseEntity<Void> deleteFinishedWorkoutSessionsByWorkoutTemplate(
+            @PathVariable UUID workoutTemplateId
+    ) {
+        workoutSessionService.deleteFinishedWorkoutSessionsByWorkoutTemplate(workoutTemplateId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Delete workout session",
+            description = "Deletes a single workout session belonging to the authenticated user."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Workout session deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            @ApiResponse(responseCode = "404", description = "Workout session not found")
+    })
+    @DeleteMapping("/{workoutSessionId}")
+    public ResponseEntity<Void> deleteWorkoutSession(@PathVariable UUID workoutSessionId) {
+        workoutSessionService.deleteWorkoutSession(workoutSessionId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -234,4 +234,45 @@ public class WorkoutSessionServiceImpl implements WorkoutSessionService {
 
         return workoutSession;
     }
+
+    @Override
+    @Transactional
+    public void deleteWorkoutSession(UUID workoutSessionId) {
+        String userEmail = currentUserService.getCurrentUserEmail();
+
+        WorkoutSession workoutSession = authorizationService.verifyAndGetWorkoutSession(
+                workoutSessionId,
+                userEmail
+        );
+
+        workoutSessionRepository.delete(workoutSession);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFinishedWorkoutSessions() {
+        String userEmail = currentUserService.getCurrentUserEmail();
+
+        List<WorkoutSession> finishedSessions = workoutSessionRepository
+                .findAllByUserEmailAndStatus(userEmail, WorkoutSessionStatus.FINISHED);
+
+        workoutSessionRepository.deleteAll(finishedSessions);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFinishedWorkoutSessionsByWorkoutTemplate(UUID workoutTemplateId) {
+        String userEmail = currentUserService.getCurrentUserEmail();
+
+        authorizationService.verifyAndGetWorkoutTemplate(workoutTemplateId, userEmail);
+
+        List<WorkoutSession> finishedSessions = workoutSessionRepository
+                .findAllByUserEmailAndStatusAndWorkoutTemplate_Id(
+                        userEmail,
+                        WorkoutSessionStatus.FINISHED,
+                        workoutTemplateId
+                );
+
+        workoutSessionRepository.deleteAll(finishedSessions);
+    }
 }

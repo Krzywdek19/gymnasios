@@ -22,4 +22,9 @@ public interface WorkoutSessionService {
     WorkoutSessionDto finishWorkoutSession(UUID workoutSessionId);
 
     List<WorkoutSessionDto> getAllUserWorkoutSessions();
+    void deleteWorkoutSession(UUID workoutSessionId);
+
+    void deleteFinishedWorkoutSessions();
+
+    void deleteFinishedWorkoutSessionsByWorkoutTemplate(UUID workoutTemplateId);
 }

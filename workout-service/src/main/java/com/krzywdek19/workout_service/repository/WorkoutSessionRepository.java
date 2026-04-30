@@ -21,6 +21,16 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     boolean existsByUserEmailAndStatusIsNot(String userEmail, WorkoutSessionStatus status);
 
     List<WorkoutSession> findAllByUserEmailOrderByStartedAtDesc(String userEmail);
+    List<WorkoutSession> findAllByUserEmailAndStatus(
+            String userEmail,
+            WorkoutSessionStatus status
+    );
+
+    List<WorkoutSession> findAllByUserEmailAndStatusAndWorkoutTemplate_Id(
+            String userEmail,
+            WorkoutSessionStatus status,
+            UUID workoutTemplateId
+    );
 
     Optional<WorkoutSession> findFirstByUserEmailAndStatusAndWorkoutTemplate_TrainingPlan_IdOrderByFinishedAtDesc(
             String userEmail,
@@ -53,4 +63,5 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             nativeQuery = true
     )
     void detachWorkoutTemplateReferencesByWorkoutTemplateId(UUID workoutTemplateId);
+
 }
