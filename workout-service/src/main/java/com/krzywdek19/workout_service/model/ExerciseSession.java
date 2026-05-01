@@ -36,6 +36,10 @@ public class ExerciseSession {
     @OrderBy("orderIndex ASC")
     private List<SetSession> sets = new ArrayList<>();
     @Column(nullable = false)
+    private Integer restBetweenSetsSeconds;
+    @Column(nullable = false)
+    private Integer restAfterExerciseSeconds;
+    @Column(nullable = false)
     private int orderIndex;
     @Column(nullable = false)
     private int setsCount;

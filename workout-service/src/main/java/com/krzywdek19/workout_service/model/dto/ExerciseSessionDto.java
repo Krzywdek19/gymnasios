@@ -17,7 +17,7 @@ public record ExerciseSessionDto(
         UUID id,
 
         @Schema(
-                description = "Exercise name.",
+                description = "Snapshot of the exercise name copied from the exercise template when the workout session was started.",
                 example = "Barbell Bench Press"
         )
         String name,
@@ -29,10 +29,22 @@ public record ExerciseSessionDto(
         Integer orderIndex,
 
         @Schema(
-                description = "Planned number of sets for the exercise.",
+                description = "Snapshot of the planned number of sets for this exercise.",
                 example = "4"
         )
         Integer setsCount,
+
+        @Schema(
+                description = "Snapshot of the rest time between sets, expressed in seconds.",
+                example = "120"
+        )
+        Integer restBetweenSetsSeconds,
+
+        @Schema(
+                description = "Snapshot of the rest time after completing this exercise before moving to the next exercise, expressed in seconds.",
+                example = "180"
+        )
+        Integer restAfterExerciseSeconds,
 
         @Schema(
                 description = "List of performed sets for the exercise session."

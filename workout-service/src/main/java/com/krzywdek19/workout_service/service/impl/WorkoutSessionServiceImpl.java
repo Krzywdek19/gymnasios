@@ -211,6 +211,8 @@ public class WorkoutSessionServiceImpl implements WorkoutSessionService {
                     .name(exerciseTemplate.getName())
                     .orderIndex(exerciseTemplate.getOrderIndex())
                     .setsCount(exerciseTemplate.getSetsCount())
+                    .restBetweenSetsSeconds(exerciseTemplate.getRestBetweenSetsSeconds())
+                    .restAfterExerciseSeconds(exerciseTemplate.getRestAfterExerciseSeconds())
                     .sets(new ArrayList<>())
                     .build();
 

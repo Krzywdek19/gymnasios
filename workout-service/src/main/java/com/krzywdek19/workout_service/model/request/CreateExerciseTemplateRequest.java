@@ -19,7 +19,8 @@ public record CreateExerciseTemplateRequest(
 
         @Schema(
                 description = "Optional notes or execution tips for the exercise.",
-                example = "Keep shoulder blades retracted and maintain a stable arch."
+                example = "Keep shoulder blades retracted and maintain a stable arch.",
+                nullable = true
         )
         String notes,
 
@@ -34,9 +35,28 @@ public record CreateExerciseTemplateRequest(
 
         @Schema(
                 description = "Number of reps planned for the exercise.",
-                example = "8-12"
+                example = "8-12",
+                nullable = true
         )
         String reps,
+
+        @Schema(
+                description = "Rest time between sets, expressed in seconds. If null, the service should use the default rest time.",
+                example = "120",
+                minimum = "0",
+                nullable = true
+        )
+        @Min(0)
+        Integer restBetweenSetsSeconds,
+
+        @Schema(
+                description = "Rest time after completing this exercise before moving to the next exercise, expressed in seconds. If null, the service should use the default rest time.",
+                example = "180",
+                minimum = "0",
+                nullable = true
+        )
+        @Min(0)
+        Integer restAfterExerciseSeconds,
 
         @Schema(
                 description = "Order of the exercise inside the workout template.",

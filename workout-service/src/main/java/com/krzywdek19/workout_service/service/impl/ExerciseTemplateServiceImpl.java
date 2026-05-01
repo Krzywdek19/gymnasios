@@ -37,6 +37,16 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
                 .notes(request.notes())
                 .orderIndex(request.orderIndex())
                 .setsCount(request.setsCount())
+                .restBetweenSetsSeconds(
+                        request.restBetweenSetsSeconds() != null
+                                ? request.restBetweenSetsSeconds()
+                                : 120
+                )
+                .restAfterExerciseSeconds(
+                        request.restAfterExerciseSeconds() != null
+                                ? request.restAfterExerciseSeconds()
+                                : 180
+                )
                 .reps(request.reps())
                 .build();
         return exerciseTemplateMapper.toDto(exerciseTemplateRepository.save(exerciseTemplate));
@@ -70,6 +80,13 @@ public class ExerciseTemplateServiceImpl implements ExerciseTemplateService {
         exerciseTemplate.setOrderIndex(request.orderIndex());
         exerciseTemplate.setSetsCount(request.setsCount());
         exerciseTemplate.setNotes(request.notes());
+        if (request.restBetweenSetsSeconds() != null) {
+            exerciseTemplate.setRestBetweenSetsSeconds(request.restBetweenSetsSeconds());
+        }
+
+        if (request.restAfterExerciseSeconds() != null) {
+            exerciseTemplate.setRestAfterExerciseSeconds(request.restAfterExerciseSeconds());
+        }
         exerciseTemplate.setReps(request.reps());
         return exerciseTemplateMapper.toDto(exerciseTemplateRepository.save(exerciseTemplate));
     }

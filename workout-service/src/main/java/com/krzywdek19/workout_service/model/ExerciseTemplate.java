@@ -30,6 +30,12 @@ public class ExerciseTemplate {
     private int setsCount;
     @Column(nullable = false)
     private String reps;
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer restBetweenSetsSeconds = 120;
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer restAfterExerciseSeconds = 180;
     @Column(nullable = false)
     private int orderIndex;
     private String notes;
